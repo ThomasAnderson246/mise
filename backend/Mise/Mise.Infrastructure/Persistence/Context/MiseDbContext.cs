@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Mise.Domain.Entities;
 
 namespace Mise.Infrastructure.Persistence.Context
 {
@@ -11,6 +12,8 @@ namespace Mise.Infrastructure.Persistence.Context
 	{
 
         public MiseDbContext(DbContextOptions<MiseDbContext> options) : base(options) { }
+
+        public DbSet<Tenant> Tenants { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
