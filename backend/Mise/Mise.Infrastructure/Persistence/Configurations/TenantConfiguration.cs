@@ -11,7 +11,7 @@ using Mise.Domain.Entities;
 
 namespace Mise.Infrastructure.Persistence.Configurations
 {
-    public class TenantConfiguration
+    public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
     {
         public void Configure(EntityTypeBuilder<Tenant> builder)
         {

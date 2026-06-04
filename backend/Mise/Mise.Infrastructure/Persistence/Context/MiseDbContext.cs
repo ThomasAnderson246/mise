@@ -14,6 +14,7 @@ namespace Mise.Infrastructure.Persistence.Context
         public MiseDbContext(DbContextOptions<MiseDbContext> options) : base(options) { }
 
         public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
