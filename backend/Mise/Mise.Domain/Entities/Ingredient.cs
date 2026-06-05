@@ -17,5 +17,11 @@ namespace Mise.Domain.Entities
         public Guid? CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public Tenant Tenant { get; set; } = null!;
+        public UnitType? DefaultUniteType { get; set; }
+        public User? CreatedByUser { get; set; }
+        public ICollection<IngredientAllergen> IngredientAllergens { get; set; } = new List<IngredientAllergen>();
+        public ICollection<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
     }
 }

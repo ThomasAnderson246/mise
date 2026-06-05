@@ -16,5 +16,9 @@ namespace Mise.Domain.Entities
         public Guid? PublishedBy { get; set; }
         public DateTime? PublishedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        //navigation
+        public RecipeVersion Version { get; set; } = null!;
+        public ICollection<StepCheckOff> StepCheckOffs { get; set; } = new List<StepCheckOff>();
     }
 }

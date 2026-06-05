@@ -13,5 +13,8 @@ namespace Mise.Domain.Entities
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public Tenant Tenant { get; set; } = null!;
+        public ICollection<RecipeCategory> RecipeCategories { get; set; } = new List<RecipeCategory>();
     }
 }

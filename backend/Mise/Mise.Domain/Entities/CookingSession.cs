@@ -16,5 +16,13 @@ namespace Mise.Domain.Entities
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
         public bool IsComplete { get; set; } = false;
+
+        //navigation
+        public Tenant Tenant { get; set; } = null!;
+        public Recipe Recipe { get; set; } = null!;
+        public RecipeVersion Version { get; set; } = null!;
+        public User? StartedByUser { get; set; }
+        public ICollection<StepCheckOff> StepCheckOffs { get; set; } =  new List<StepCheckOff>();
+        public ICollection<IngredientCheckOff> IngredientCheckOffs { get; set; } = new List<IngredientCheckOff>();
     }
 }

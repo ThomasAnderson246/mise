@@ -6,13 +6,16 @@ using System.Threading.Tasks;
 
 namespace Mise.Domain.Entities
 {
-    public class RecipeCategory
+    public class MenuItemRecipe
     {
+        public Guid MenuItemRecipeId { get; set; }
+        public Guid MenuItemId { get; set; }
         public Guid RecipeId { get; set; }
-        public Guid CategoryId { get; set; }
+        public int DisplayOrder { get; set; }
+        public string? Note { get; set; }
 
         //navigation
+        public MenuItem MenuItem { get; set; } = null!;
         public Recipe Recipe { get; set; } = null!;
-        public Category Category { get; set; } = null!;
     }
 }

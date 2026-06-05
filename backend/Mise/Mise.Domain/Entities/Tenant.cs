@@ -10,8 +10,8 @@ namespace Mise.Domain.Entities
 	{
 
         public Guid TenantId { get; set; }
-        public string Name { get; set; }
-        public string Slug {  get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Slug { get; set; } = string.Empty;
         public string? LogoUrl { get; set; }
         public string? PrimaryColour { get; set; }
         public string? SecondaryColour { get;set; }
@@ -23,5 +23,12 @@ namespace Mise.Domain.Entities
 
         public ICollection<User> Users { get; set; } = new List<User>();
         public ICollection<Role> Roles { get; set; } = new List<Role>();
+        public ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
+        public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
+        public ICollection<PrepList> PrepList { get; set; } = new List<PrepList>();
+        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+        public ICollection<MenuItem> MenuItem { get; set; } = new List<MenuItem>();
 	}
 }

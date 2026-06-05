@@ -10,5 +10,9 @@ namespace Mise.Domain.Entities
     {
         public Guid IngredientId { get; set; }
         public Guid AllergenId { get; set; }
+
+        //navigation
+        public Ingredient Ingredient { get; set; } = null!;
+        public AllergenTag AllergenTag { get; set; } = null!;
     }
 }

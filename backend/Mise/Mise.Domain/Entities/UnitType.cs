@@ -16,5 +16,9 @@ namespace Mise.Domain.Entities
         public decimal? ConversionFactor { get; set; }
         public bool IsNonConvertible { get; set; } = false;
 
+
+        //navigation
+        public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
+        public ICollection<RecipeIngredient> RecipeIngredients { get; set; } = new List<RecipeIngredient>();
     }
 }

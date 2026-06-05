@@ -6,19 +6,19 @@ using System.Threading.Tasks;
 
 namespace Mise.Domain.Entities
 {
-    public class Role
+    public class PrepList
     {
-
-        public Guid RoleId { get; set; }
+        public Guid PrepListId { get; set; }
         public Guid TenantId { get; set; }
         public string Name { get; set; } = string.Empty;
-        public bool IsSystemRole { get; set; } = false;
+        public Guid? CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set;} = DateTime.UtcNow;
+        public DateTime? CompletedAt { get; set; }
+        public bool IsComplete { get; set; } = false;
 
         // navigation
         public Tenant Tenant { get; set; } = null!;
-        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+        public User? CreatedByUser { get; set; }
+        public ICollection<PrepListItem> Items { get; set; } = new List<PrepListItem>();
     }
 }

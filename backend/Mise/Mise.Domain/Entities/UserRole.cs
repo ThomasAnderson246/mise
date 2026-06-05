@@ -13,5 +13,9 @@ namespace Mise.Domain.Entities
         public Guid RoleId { get; set; }
         public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
         public Guid? AssignedBy { get; set; }
+
+        public User User { get; set; } = null!;
+        public Role Role { get; set; } = null!;
+        public User? AssignedByUser { get; set; }
     }
 }

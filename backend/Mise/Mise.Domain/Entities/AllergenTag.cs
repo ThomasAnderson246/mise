@@ -14,5 +14,9 @@ namespace Mise.Domain.Entities
         public string? Description {  get; set; }
         public bool IsMajor { get; set; } = false;
 
+        // navigation
+        public ICollection<IngredientAllergen> IngredientAllergens { get; set; } = new List<IngredientAllergen>();
+        public ICollection<MenuItemAllergen> MenuItemAllergens { get; set; } = new List<MenuItemAllergen>();
+
     }
 }

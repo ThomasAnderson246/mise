@@ -16,5 +16,11 @@ namespace Mise.Domain.Entities
         public bool IsNonConvertible { get; set; } = false;
         public bool IsRatioAnchor { get; set; } = false;
         public int DisplayOrder { get; set; }
+
+        //navigation
+        public RecipeVersion Version { get; set; } = null!;
+        public Ingredient Ingredient { get; set; } = null!;
+        public UnitType? UnitType {get; set; }
+        public ICollection<IngredientCheckOff> IngredientCheckOffs { get; set; } = new List<IngredientCheckOff>();
     }
 }
