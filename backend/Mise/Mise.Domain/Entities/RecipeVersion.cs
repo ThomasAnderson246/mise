@@ -12,13 +12,17 @@ namespace Mise.Domain.Entities
         public Guid RecipeId { get; set; }
         public int VersionNumber { get; set; }
         public bool IsDraft { get; set; } = true;
-        public bool IsPUblished { get; set; } = false;
+        public bool IsPublished { get; set; } = false;
         public Guid? PublishedBy { get; set; }
         public DateTime? PublishedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         //navigation
-        public RecipeVersion Version { get; set; } = null!;
+        
+        public Recipe Recipe { get; set; } = null!;
+        public User? PublishedByUser { get; set; }
+
+        public ICollection<RecipeStep> Steps { get; set; } = new List<RecipeStep>();
         public ICollection<StepCheckOff> StepCheckOffs { get; set; } = new List<StepCheckOff>();
     }
 }

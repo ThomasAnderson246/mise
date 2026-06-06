@@ -17,5 +17,9 @@ namespace Mise.Domain.Entities
         public bool HasTimer { get; set; } = false;
         public int? TimerDuration {  get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        //navigation
+        public RecipeVersion Version { get; set; } = null!;
+        public ICollection<StepCheckOff> StepCheckOffs { get; set; } = new List<StepCheckOff>();
     }
 }
