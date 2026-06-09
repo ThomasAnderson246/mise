@@ -26,9 +26,9 @@ namespace Mise.Domain.Entities
         public ICollection<Recipe> Recipes { get; set; } = new List<Recipe>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
         public ICollection<Ingredient> Ingredients { get; set; } = new List<Ingredient>();
-        public ICollection<PrepList> PrepList { get; set; } = new List<PrepList>();
+        public ICollection<PrepList> PrepLists { get; set; } = new List<PrepList>();
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
-        public ICollection<MenuItem> MenuItem { get; set; } = new List<MenuItem>();
+        public ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
 	}
 }

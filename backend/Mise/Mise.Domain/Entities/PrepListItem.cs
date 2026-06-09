@@ -17,7 +17,7 @@ namespace Mise.Domain.Entities
         public DateTime? CompletedAt { get; set; }
 
         // navigation
-        public PrepList PRepList { get; set; } = null!;
+        public PrepList PrepList { get; set; } = null!;
         public Recipe Recipe { get; set; } = null!;
         public User? CompletedByUser { get; set; }
 

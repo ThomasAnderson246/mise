@@ -23,6 +23,6 @@ namespace Mise.Domain.Entities
         public User? PublishedByUser { get; set; }
 
         public ICollection<RecipeStep> Steps { get; set; } = new List<RecipeStep>();
-        public ICollection<StepCheckOff> StepCheckOffs { get; set; } = new List<StepCheckOff>();
+        public ICollection<RecipeIngredient> Ingredients { get; set; } = new List<RecipeIngredient>();
     }
 }

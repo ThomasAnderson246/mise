@@ -69,6 +69,5 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }
-    {
-    }
+   
 }

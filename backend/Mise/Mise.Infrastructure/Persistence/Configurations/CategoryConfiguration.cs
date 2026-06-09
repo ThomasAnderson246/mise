@@ -46,6 +46,6 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
-    {
-    }
+ 
 }
+

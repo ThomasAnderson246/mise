@@ -15,6 +15,36 @@ namespace Mise.Infrastructure.Persistence.Context
 
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<UnitType> UnitTypes { get; set; }
+
+        public DbSet<AllergenTag> Allers { get; set; }
+        public DbSet<Category> Category { get; set; }
+        public DbSet<Ingredient> Ingredients { get; set; }
+
+        public DbSet<IngredientAllergen> IngredientAllergens { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
+        public DbSet<RecipeVersion> RecipeVersions { get; set; }
+        public DbSet<RecipeStep> RecipeSteps { get; set; }
+        public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+        public DbSet<RecipeCategory> RecipeCategories { get; set; }
+        public DbSet<SubRecipe> SubRecipes { get; set; }
+        public DbSet<CookingSession> CookingSessions { get; set; }
+        public DbSet<StepCheckOff> StepCheckOffs { get; set; }
+        public DbSet<IngredientCheckOff> IngredientCheckOffs { get; set; }
+        public DbSet<PrepList> PrepLists { get; set; }
+        public DbSet<PrepListItem> PrepListItems { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<NotificationQueue> NotificationsQueues { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<TranscriptionJob> TranscriptionJobs { get; set; }
+        public DbSet<TranscriptionResult> TranscriptionResults { get; set; }
+        public DbSet<MenuItem> MenuItems { get; set; }
+        public DbSet<MenuItemRecipe> MenuItemRecipes { get; set; }
+        public DbSet<MenuItemAllergen> MenuItemAllergens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

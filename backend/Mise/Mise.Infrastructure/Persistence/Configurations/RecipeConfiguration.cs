@@ -30,6 +30,19 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasMaxLength(255)
                 .IsRequired();
 
+            builder.Property(r => r.Description)
+                .HasColumnName("description");
+
+            builder.Property(r => r.Status)
+                .HasColumnName("status")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.Property(r => r.ScalingMode)
+                .HasColumnName("scaling_mode")
+                .HasMaxLength(20)
+                .IsRequired();
+
             builder.Property(r => r.CurrentVersionId)
                 .HasColumnName("current_version_id");
 

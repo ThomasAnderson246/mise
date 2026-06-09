@@ -30,7 +30,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
 
             builder.HasOne(ia => ia.AllergenTag)
                 .WithMany(a => a.IngredientAllergens)
-                .HasForeignKey(ia -> ia.AllergenId)
+                .HasForeignKey(ia => ia.AllergenId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
