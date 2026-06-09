@@ -4,7 +4,7 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["Mise.API/Mise.API.csproj", "MISE.API/"]
+COPY ["Mise.API/Mise.API.csproj", "Mise.API/"]
 COPY ["Mise.Application/Mise.Application.csproj", "Mise.Application/"]
 COPY ["Mise.Domain/Mise.Domain.csproj", "Mise.Domain/"]
 COPY ["Mise.Infrastructure/Mise.Infrastructure.csproj","Mise.Infrastructure/"]
