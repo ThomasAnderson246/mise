@@ -15,13 +15,17 @@ builder.Services.AddDbContext<MiseDbContext>(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+/*if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+}*/
 
-app.UseHttpsRedirection();
+app.UseSwagger();
+app.UseSwaggerUI();
+
+// commented out for railway redirection for now
+//app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
