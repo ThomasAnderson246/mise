@@ -12,6 +12,9 @@ on:
     paths: 
       - 'frontend/**'
 
+  workflow_dispatch:
+    
+
 jobs: 
   build-and-test:
     runs-on: ubuntu-latest
