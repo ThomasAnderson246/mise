@@ -8,13 +8,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mise.Domain\Mise.Domain.csproj" />
+    <ProjectReference Include="..\Mise.Application\Mise.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Identity\" />
     <Folder Include="Services\" />
     <Folder Include="Persistence\Migrations\" />
-    <Folder Include="Persistence\Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
