@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Mise.API.Middleware;
 using Mise.Infrastructure.Persistence.Context;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<MiseDbContext>(options =>
    );
 
 var app = builder.Build();
+app.UseMiddleware<ErrorHandlingMIddleware>();
 
 /*if (app.Environment.IsDevelopment())
 {
