@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Mise.API.Extensions;
 using Mise.API.Middleware;
 using Mise.Infrastructure.Persistence.Context;
 
@@ -8,14 +9,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<MiseDbContext>(options => 
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-     )
-   );
+builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddRepositories();
+builder.Services.AddApplicationServices();
+builder.Services.AddJwtAuthentication(builder.Configuration);
+
 
 var app = builder.Build();
-app.UseMiddleware<ErrorHandlingMIddleware>();
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 /*if (app.Environment.IsDevelopment())
 {

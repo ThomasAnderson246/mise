@@ -3,13 +3,13 @@ using System.Text.Json;
 
 namespace Mise.API.Middleware
 {
-    public class ErrorHandlingMIddleware
+    public class ErrorHandlingMiddleware
     {
 
         private readonly RequestDelegate _next;
-        private readonly ILogger<ErrorHandlingMIddleware> _logger;
+        private readonly ILogger<ErrorHandlingMiddleware> _logger;
 
-        public ErrorHandlingMIddleware(RequestDelegate next, ILogger<ErrorHandlingMIddleware> logger)
+        public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
         {
             _next = next;
             _logger = logger;
