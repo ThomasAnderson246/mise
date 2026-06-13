@@ -5,6 +5,8 @@ using Mise.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Mise.Application;
+using Mise.Infrastructure.Services;
 
 namespace Mise.API.Extensions
 {
@@ -33,6 +35,7 @@ namespace Mise.API.Extensions
             this IServiceCollection services)
         {
             // application services will be registered here as they're built
+            services.AddScoped<IAuthService, AuthServices>();
             return services;
         }
 
