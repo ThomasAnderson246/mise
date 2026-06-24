@@ -99,9 +99,12 @@ namespace Mise.Infrastructure.Services
                 existing.RevokedAt = DateTime.UtcNow;
             }
 
+            if (exisitingTokens.Any()) await _context.SaveChangesAsync();
+
             // generate a new secure token
             var tokenBytes = new byte[64];
             using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            rng.GetBytes(tokenBytes);
             var tokenString = Convert.ToBase64String(tokenBytes);
 
             var refreshToken = new RefreshToken
