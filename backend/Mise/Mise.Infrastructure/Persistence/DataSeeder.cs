@@ -65,6 +65,41 @@ namespace Mise.Infrastructure.Persistence
             await context.Users.AddAsync(user);
             await context.SaveChangesAsync();
 
+            var permissions = new List<Permission>
+            {
+                // recipe permissions
+                new Permission {PermissionId = Guid.NewGuid(), Name= "recipe.create", Resource = "recipe", Action = "create"},
+                new Permission { PermissionId = Guid.NewGuid(), Name="recipe.read", Resource="recipe", Action="create" },
+                new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.update", Resource = "recipe", Action="update" },
+                new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.delete", Resource = "recipe", Action = "delete" },
+                new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.publish", Resource = "recipe", Action = "publish" },
+
+                // user permissions
+
+                new Permission { PermissionId = Guid.NewGuid(), Name = "user.manage", Resource = "user", Action = "manage" },
+
+                //audit permissions
+                new Permission { PermissionId = Guid.NewGuid(), Name = "audit.read", Resource = "audit", Action = "read" },
+
+                //menu item permissions
+                new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.create", Resource = "menuitem", Action = "create" },
+                new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.read", Resource = "menuitem", Action = "read" },
+                new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.update", Resource = "menuitem", Action = "update" },
+            };
+
+            await context.Permissions.AddRangeAsync(permissions);
+            await context.SaveChangesAsync();
+
+            var rolePermissions = permissions.Select(p => new RolePermission
+            {
+                RoleId = chefRole.RoleId,
+                PermissionId = p.PermissionId,
+                AssignedAt = DateTime.UtcNow
+            }).ToList();
+
+            await context.RolePermissions.AddRangeAsync(rolePermissions);
+            await context.SaveChangesAsync();
+
             //assign new role to new chef
             var userRole = new UserRole
 

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Mvc;
 using Mise.API;
@@ -123,5 +124,9 @@ namespace Mise.API.Controllers
 
             return Ok(ApiResponse<string>.Ok("Logged out.", "Logout successful."));
         }
+
+        //[HttpGet("test-auth")]
+        //[Authorize]
+        //public IActionResult TestAuth() { }
     }
 }
