@@ -18,7 +18,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.HasKey(rt => rt.RefreshTokenId);
 
             builder.Property(rt => rt.RefreshTokenId)
-                .HasColumnName("refresh_column_id")
+                .HasColumnName("refresh_token_id")
                 .HasDefaultValueSql("gen_random_uuid()");
 
             builder.Property(rt => rt.UserId)

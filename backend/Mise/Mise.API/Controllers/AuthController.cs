@@ -96,7 +96,7 @@ namespace Mise.API.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var refreshToken = Request.Cookies["refreshtoken"];
+            var refreshToken = Request.Cookies["refreshToken"];
 
             if (!string.IsNullOrEmpty(refreshToken))
                 await _authService.RevokeRefreshTokenAsync(refreshToken);
