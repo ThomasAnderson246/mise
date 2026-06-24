@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Mise.Application;
 using Mise.Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Mise.API.Extensions
 {
@@ -35,7 +36,14 @@ namespace Mise.API.Extensions
             this IServiceCollection services)
         {
             // application services will be registered here as they're built
+            services.AddHttpContextAccessor();
             services.AddScoped<IAuthService, AuthServices>();
+            services.AddScoped<ICurrentUserService, CurrentUserServices>();
+
+            //rbac
+            services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+            
             return services;
         }
 

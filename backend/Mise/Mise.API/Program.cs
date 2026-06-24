@@ -71,6 +71,7 @@ app.UseSwaggerUI(options =>
 // commented out for railway redirection for now
 //app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseMiddleware<TenantResolutionMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 

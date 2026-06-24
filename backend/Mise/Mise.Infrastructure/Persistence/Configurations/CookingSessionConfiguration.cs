@@ -34,6 +34,10 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("version_id")
                 .IsRequired();
 
+            builder.Property(cs => cs.StartedAt)
+                .HasColumnName("started_at")
+                .IsRequired();
+
             builder.Property(cs => cs.StartedBy)
                 .HasColumnName("started_by");
 

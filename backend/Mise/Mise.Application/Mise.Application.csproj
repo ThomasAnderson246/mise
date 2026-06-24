@@ -12,8 +12,8 @@
 
   <ItemGroup>
     <Folder Include="Mappings\" />
-    <Folder Include="UseCases\" />
     <Folder Include="Services\" />
+    <Folder Include="UseCases\" />
   </ItemGroup>
 
   <ItemGroup>

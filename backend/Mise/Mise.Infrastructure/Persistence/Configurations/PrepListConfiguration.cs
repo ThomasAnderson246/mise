@@ -38,7 +38,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(pl => pl.CompletedAt)
-                .HasColumnName("copmleted_at");
+                .HasColumnName("completed_at");
 
             builder.Property(pl => pl.IsComplete)
                 .HasColumnName("is_complete")
