@@ -63,7 +63,7 @@ namespace Mise.Infrastructure.Services
                 u.Status == "active");
 
             if (user == null) return null;
-            if (user.PasswordHash != password) return null;
+            //if (user.PasswordHash != password) return null;
             if (!VerifyPassword(password, user.PasswordHash)) return null;
 
             return user;

@@ -39,6 +39,23 @@ namespace Mise.API.Controllers
 
             var token = await _authService.GenerateTokenAsync(user, roleName);
 
+            try
+            {
+                var refreshToken = await _authService.GenerateRefreshTokenAsync(user.UserId, user.TenantId);
+
+                Response.Cookies.Append("refreshtoken", refreshToken.Token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = refreshToken.ExpiresAt
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate fresh token");
+                return StatusCode(500, ApiResponse<LoginResponse>.Fail("Failed to generate refresh token."));
+            }
             var response = new LoginResponse
             {
                 Token = token,

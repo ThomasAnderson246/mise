@@ -78,7 +78,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("new_state");
 
                     b.Property<DateTime>("PerformedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("performed_at");
 
                     b.Property<Guid?>("PerformedBy")
@@ -121,7 +121,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Description")
@@ -155,7 +155,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("completed_at");
 
                     b.Property<bool>("IsComplete")
@@ -169,7 +169,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("recipe_id");
 
                     b.Property<DateTime>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid?>("StartedBy")
                         .HasColumnType("uuid")
@@ -210,7 +210,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("category");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<Guid?>("CreatedBy")
@@ -239,7 +239,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("tenant_id");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("IngredientId");
@@ -279,7 +279,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CheckedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("checked_at");
 
                     b.Property<Guid?>("CheckedBy")
@@ -325,7 +325,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("course");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<Guid?>("CreatedBy")
@@ -359,7 +359,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("tenant_id");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("MenuItemId");
@@ -385,7 +385,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("allergen_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<bool>("IsDirect")
@@ -474,7 +474,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<bool>("IsRead")
@@ -489,7 +489,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("message");
 
                     b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("read_at");
 
                     b.Property<Guid>("RecipientId")
@@ -530,7 +530,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime?>("DeliveredAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("delivered_at");
 
                     b.Property<bool>("IsDelivered")
@@ -544,7 +544,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("notification_id");
 
                     b.Property<DateTime>("QueuedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("queued_at");
 
                     b.Property<Guid>("RecipientId")
@@ -613,11 +613,11 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("copmleted_at");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<Guid?>("CreatedBy")
@@ -658,7 +658,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("completed_at");
 
                     b.Property<Guid?>("CompletedBy")
@@ -703,7 +703,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<Guid?>("CreatedBy")
@@ -741,7 +741,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("title");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("RecipeId");
@@ -844,7 +844,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("Name");
+                        .HasColumnName("name");
 
                     b.Property<Guid>("VersionId")
                         .HasColumnType("uuid")
@@ -870,7 +870,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("async_group_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<bool>("HasTimer")
@@ -918,7 +918,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<bool>("IsDraft")
@@ -934,7 +934,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("is_published");
 
                     b.Property<DateTime?>("PublishedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("published_at");
 
                     b.Property<Guid?>("PublishedBy")
@@ -968,11 +968,11 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("expires_at");
 
                     b.Property<bool>("IsRevoked")
@@ -982,7 +982,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("is_revoked");
 
                     b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("revoked_at");
 
                     b.Property<Guid>("TenantId")
@@ -1019,7 +1019,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<bool>("IsSystemRole")
@@ -1032,14 +1032,14 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
-                        .HasColumnName("Name");
+                        .HasColumnName("name");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("RoleId");
@@ -1061,7 +1061,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("permission_id");
 
                     b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("assigned_at");
 
                     b.HasKey("RoleId", "PermissionId");
@@ -1080,7 +1080,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CheckedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("checked_at");
 
                     b.Property<Guid?>("CheckedBy")
@@ -1141,7 +1141,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("DefaultUnitSystem")
@@ -1189,7 +1189,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("tier");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("TenantId");
@@ -1209,11 +1209,11 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("completed_at");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("ErrorMessage")
@@ -1268,7 +1268,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("confidence_score");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("FlaggedFields")
@@ -1339,7 +1339,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Email")
@@ -1355,7 +1355,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("first_name");
 
                     b.Property<DateTime?>("LastLoginAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("last_login_at");
 
                     b.Property<string>("LastName")
@@ -1385,7 +1385,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("unit_preference");
 
                     b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("updated_at");
 
                     b.HasKey("UserId");
@@ -1405,7 +1405,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("AssignedAt")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("assigned_at");
 
                     b.Property<Guid?>("AssignedBy")

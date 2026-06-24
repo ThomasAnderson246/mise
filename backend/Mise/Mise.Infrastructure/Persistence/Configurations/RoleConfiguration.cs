@@ -26,7 +26,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(r => r.Name)
-                .HasColumnName("Name")
+                .HasColumnName("name")
                 .HasMaxLength(100)
                 .IsRequired();
 
