@@ -11,6 +11,10 @@ namespace Mise.Application.Interfaces
     {
         Task<string> GenerateTokenAsync(User user, string roleName);
         Task<User?> ValidateUserAsync(string email, string password, Guid tenantId);
+        Task<string> GetUserRoleAsync(Guid userId);
+        Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId, Guid tenantId);
+        Task<(User? user, string roleName)> ValidateRefreshTokenAsync(string token, Guid tenantId);
+        Task RevokeRefreshTokenAsync(string token);
         string HashPassword(string password);
         bool VerifyPassword(string password, string hash);
     }

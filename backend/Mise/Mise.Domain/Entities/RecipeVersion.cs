@@ -24,5 +24,6 @@ namespace Mise.Domain.Entities
 
         public ICollection<RecipeStep> Steps { get; set; } = new List<RecipeStep>();
         public ICollection<RecipeIngredient> Ingredients { get; set; } = new List<RecipeIngredient>();
+        public ICollection<RecipeIngredientGroup> IngredientGroups { get; set; } = new List<RecipeIngredientGroup>();
     }
 }

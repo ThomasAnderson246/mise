@@ -49,6 +49,9 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("display_order")
                 .IsRequired();
 
+            builder.Property(ri => ri.GroupId)
+                .HasColumnName("group_id");
+
             builder.HasOne(ri => ri.Version)
                 .WithMany(rv => rv.Ingredients)
                 .HasForeignKey(ri => ri.VersionId)
@@ -62,6 +65,11 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.HasOne(ri => ri.UnitType)
                 .WithMany(u => u.RecipeIngredients)
                 .HasForeignKey(ri => ri.UnitTypeId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(ri => ri.Group)
+                .WithMany(g => g.Ingredients)
+                .HasForeignKey(ri => ri.GroupId)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

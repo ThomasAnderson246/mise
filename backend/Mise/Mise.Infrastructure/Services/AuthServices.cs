@@ -78,5 +78,75 @@ namespace Mise.Infrastructure.Services
         {
             return BCrypt.Net.BCrypt.Verify(password, hash);
         }
+
+        public async Task<string> GetUserRoleAsync(Guid userId)
+        {
+            var userRole = await _context.UserRoles.Include(ur => ur.Role).FirstOrDefaultAsync(u => u.UserId == userId);
+
+            return userRole?.Role?.Name ?? "cook";
+        }
+
+        public async Task<RefreshToken> GenerateRefreshTokenAsync(Guid userId, Guid tenantId)
+        {
+            //revoke any existing tokens
+            var exisitingTokens = await _context.RefreshTokens
+                .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+                .ToListAsync();
+
+            foreach(var existing in exisitingTokens)
+            {
+                existing.IsRevoked = true;
+                existing.RevokedAt = DateTime.UtcNow;
+            }
+
+            // generate a new secure token
+            var tokenBytes = new byte[64];
+            using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+            var tokenString = Convert.ToBase64String(tokenBytes);
+
+            var refreshToken = new RefreshToken
+            {
+                UserId = userId,
+                TenantId = tenantId,
+                Token = tokenString,
+                ExpiresAt = DateTime.UtcNow.AddHours(12),
+                CreatedAt = DateTime.UtcNow,
+                IsRevoked = false
+            };
+
+            await _context.RefreshTokens.AddAsync(refreshToken);
+            await _context.SaveChangesAsync();
+
+            return refreshToken;
+        }
+
+        public async Task<(User? user, string roleName)> ValidateRefreshTokenAsync(string token, Guid tenantId)
+        {
+            var refreshToken = await _context.RefreshTokens
+                .Include(rt => rt.User)
+                .FirstOrDefaultAsync(rt =>
+                    rt.Token == token &&
+                    rt.TenantId == tenantId &&
+                    !rt.IsRevoked &&
+                    rt.ExpiresAt > DateTime.UtcNow);
+
+            if (refreshToken == null)
+                return (null, string.Empty);
+
+            var roleName = await GetUserRoleAsync(refreshToken.UserId);
+            return (refreshToken.User, roleName);
+        }
+
+        public async Task RevokeRefreshTokenAsync(string token)
+        {
+            var refreshToken = await _context.RefreshTokens
+                .FirstOrDefaultAsync(rt => rt.Token == token);
+
+            if (refreshToken == null) return;
+
+            refreshToken.IsRevoked = true;
+            refreshToken.RevokedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
     }
 }
