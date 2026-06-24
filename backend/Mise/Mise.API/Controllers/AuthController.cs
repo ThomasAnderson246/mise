@@ -14,11 +14,13 @@ namespace Mise.API.Controllers
 
         private readonly IAuthService _authService;
         private readonly ILogger<AuthController> _logger;
+        private readonly ICurrentUserService _currentUser;
 
-        public AuthController (IAuthService authService, ILogger<AuthController> logger)
+        public AuthController (IAuthService authService, ILogger<AuthController> logger, ICurrentUserService currentUser)
         {
             _authService = authService;
             _logger = logger;
+            _currentUser = currentUser;
         }
 
         [HttpPost("login")]
@@ -125,8 +127,28 @@ namespace Mise.API.Controllers
             return Ok(ApiResponse<string>.Ok("Logged out.", "Logout successful."));
         }
 
-        //[HttpGet("test-auth")]
-        //[Authorize]
-        //public IActionResult TestAuth() { }
+        [HttpGet("test-auth")]
+        [Authorize]
+        public IActionResult TestAuth()
+        {
+            return Ok(ApiResponse<object>.Ok(new
+            {
+                message = "You are authenticated.",
+                userId = _currentUser.UserId,
+                tenantId = _currentUser.TenantId,
+                role = _currentUser.Role,
+                email = _currentUser.Email
+            }));
+        }
+
+        [HttpGet("test-permission")]
+        [RequiresPermission("recipe", "create")]
+        public IActionResult TestPermission()
+        {
+            return Ok(ApiResponse<object>.Ok(new
+            {
+                message = "You have recipe.create permission."
+            }));
+        }
     }
 }
