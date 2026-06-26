@@ -29,6 +29,7 @@ namespace Mise.API.Extensions
         {
             // repositories will get registered here as they're built
             services.AddScoped<ITenantRepositoryService, TenantRepository>();
+            services.AddScoped<RecipeRepository>();
             return services;
         }
 
@@ -39,6 +40,7 @@ namespace Mise.API.Extensions
             services.AddHttpContextAccessor();
             services.AddScoped<IAuthService, AuthServices>();
             services.AddScoped<ICurrentUserService, CurrentUserServices>();
+            services.AddScoped<IRecipeService, RecipeService>();
 
             //rbac
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
