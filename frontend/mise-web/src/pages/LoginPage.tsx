@@ -26,6 +26,12 @@ function LoginPage() {
         }
     }, [location.state])
 
+    useEffect(() => { 
+        if (location.state?.message) {
+            setRedirectMessage(location.state.message)
+        }
+    }, [location.state])
+
     //fetch tenant on mount ... this will get the tenant name and branding
 
     useEffect(() => {
