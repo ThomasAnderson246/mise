@@ -29,7 +29,7 @@ namespace Mise.API.Extensions
         {
             // repositories will get registered here as they're built
             services.AddScoped<ITenantRepositoryService, TenantRepository>();
-            services.AddScoped<RecipeRepository>();
+            services.AddScoped<IRecipeRepository, RecipeRepository>();
             return services;
         }
 

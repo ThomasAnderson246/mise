@@ -10,7 +10,7 @@ using Mise.Infrastructure.Persistence.Context;
 
 namespace Mise.Infrastructure.Persistence.Repositories
 {
-    public class RecipeRepository : BaseTenantRepository<Recipe>
+    public class RecipeRepository : BaseTenantRepository<Recipe>, IRecipeRepository
     {
 
         public RecipeRepository(MiseDbContext context) : base(context) { }

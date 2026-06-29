@@ -8,16 +8,15 @@ using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
-using Mise.Infrastructure.Persistence.Repositories;
 
 namespace Mise.Infrastructure.Services
 {
     public class RecipeService : IRecipeService
     {
-        private readonly RecipeRepository _reciperRepository;
+        private readonly IRecipeRepository _reciperRepository;
         private readonly MiseDbContext _context;
 
-        public RecipeService(RecipeRepository reciperRepository, MiseDbContext context)
+        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context)
         {
             _reciperRepository = reciperRepository;
             _context = context;
