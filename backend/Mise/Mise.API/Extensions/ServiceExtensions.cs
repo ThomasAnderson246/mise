@@ -41,6 +41,7 @@ namespace Mise.API.Extensions
             services.AddScoped<IAuthService, AuthServices>();
             services.AddScoped<ICurrentUserService, CurrentUserServices>();
             services.AddScoped<IRecipeService, RecipeService>();
+            services.AddScoped<IAuditLogServices, AuditLogService>();
 
             //rbac
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
