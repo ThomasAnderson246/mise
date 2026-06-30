@@ -21,7 +21,7 @@ namespace Mise.Infrastructure.Persistence.Context
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<UnitType> UnitTypes { get; set; }
 
-        public DbSet<AllergenTag> Allers { get; set; }
+        public DbSet<AllergenTag> AllergenTags { get; set; }
         public DbSet<Category> Category { get; set; }
         public DbSet<Ingredient> Ingredients { get; set; }
 

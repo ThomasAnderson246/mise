@@ -10,6 +10,8 @@ namespace Mise.Infrastructure.Persistence
         {
             Guid chefRoleId;
 
+            
+
             // Only seed tenant, user and role if no tenants exist
             if (!await context.Tenants.AnyAsync())
             {
@@ -88,6 +90,25 @@ namespace Mise.Infrastructure.Persistence
                 chefRoleId = existingRole.RoleId;
             }
 
+            if (!await context.AllergenTags.AnyAsync())
+            {
+                var allergens = new List<AllergenTag>
+                {
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Milk", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Eggs", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Fish", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Shell Fish", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Tree Nuts", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Peanuts", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Gluten", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Sesame", IsMajor = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Soy", IsMajor = true }
+                };
+
+                await context.AllergenTags.AddRangeAsync(allergens);
+                await context.SaveChangesAsync();
+            }
+
             // Seed permissions only if none exist
             if (!await context.Permissions.AnyAsync())
             {
@@ -103,6 +124,12 @@ namespace Mise.Infrastructure.Persistence
                     new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.create", Resource = "menuitem", Action = "create" },
                     new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.read", Resource = "menuitem", Action = "read" },
                     new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.update", Resource = "menuitem", Action = "update" },
+
+                    //allergy permissions
+                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.create", Resource="ingredient", Action="create" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.read", Resource="ingredient", Action="read" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.update", Resource="ingredient", Action="update" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.delete", Resource="ingredient", Action="delete" },
                 };
 
                 await context.Permissions.AddRangeAsync(permissions);
