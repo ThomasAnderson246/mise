@@ -14,7 +14,7 @@ namespace Mise.Application.Interfaces
         Task<Ingredient?> GetByIdAsync(Guid ingredientId, Guid tenantId);
         Task<IEnumerable<Ingredient>> SearchAsync(Guid dtenantId, string searchTerm);
         Task<Ingredient> CreateAsync(CreateIngredientRequest request, Guid tenantId, Guid createdBy);
-        Task<Ingredient> UpdateAsync(Guid ingredientId, UpdateIngredientRequest request, Guid tenantId);
-        Task DeleteAsync(Guid ingredientId, Guid tenantId);
+        Task<Ingredient> UpdateAsync(Guid ingredientId, UpdateIngredientRequest request, Guid tenantId, Guid performedBy);
+        Task DeleteAsync(Guid ingredientId, Guid tenantId, Guid performedBy);
     }
 }

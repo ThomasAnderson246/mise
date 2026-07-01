@@ -56,7 +56,7 @@ namespace Mise.API.Controllers
             try
             {
                 var ingredient = await _ingredientService.UpdateAsync(
-                    id, request, _currentUser.TenantId);
+                    id, request, _currentUser.TenantId, _currentUser.UserId);
 
                 return Ok(ApiResponse<IngredientResponse>.Ok(MapToResponse(ingredient), "Ingredient updated."));
             }
@@ -72,7 +72,7 @@ namespace Mise.API.Controllers
         {
             try
             {
-                await _ingredientService.DeleteAsync(id, _currentUser.TenantId);
+                await _ingredientService.DeleteAsync(id, _currentUser.TenantId, _currentUser.UserId);
                 return Ok(ApiResponse<string>.Ok("Deleted.", "Ingredient deleted."));
             }
             catch

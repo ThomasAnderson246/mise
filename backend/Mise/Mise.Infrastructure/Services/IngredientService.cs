@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Mise.Application.DTOs;
@@ -88,12 +89,19 @@ namespace Mise.Infrastructure.Services
         public async Task<Ingredient> UpdateAsync(
             Guid ingredientId,
             UpdateIngredientRequest request,
-            Guid tenantId)
+            Guid tenantId,
+            Guid performedBy)
         {
             var ingredient = await _ingredientRepository.GetByIdAndTenantAsync(ingredientId, tenantId)
                 ?? throw new KeyNotFoundException($"Ingredient {ingredientId} not found.");
 
-            var previousState = ingredient.Name;
+            var previousState = JsonSerializer.Serialize(new
+            {
+                ingredient.Name,
+                ingredient.Category,
+                ingredient.DefaultUnitType,
+                ingredient.IsNonConvertible
+            });
 
             if (request.Name != null) ingredient.Name = request.Name;
             if (request.Category != null) ingredient.Category = request.Category;
@@ -119,9 +127,17 @@ namespace Mise.Infrastructure.Services
                 await _context.SaveChangesAsync();
             }
 
+            var newState = JsonSerializer.Serialize(new
+            {
+                ingredient.Name,
+                ingredient.Category,
+                ingredient.DefaultUnitType,
+                ingredient.IsNonConvertible
+            });
+
             await _auditLogServices.LogAsync(
                 tenantId,
-                null,
+                performedBy,
                 "update",
                 "ingredient",
                 ingredient.IngredientId,
@@ -132,7 +148,7 @@ namespace Mise.Infrastructure.Services
 
         }
 
-        public async Task DeleteAsync(Guid ingredientId, Guid tenantId)
+        public async Task DeleteAsync(Guid ingredientId, Guid tenantId, Guid performedBy)
         {
             var exists = await _ingredientRepository.ExistsInTenantAsync(ingredientId, tenantId);
             if (!exists)
@@ -142,7 +158,7 @@ namespace Mise.Infrastructure.Services
 
             await _auditLogServices.LogAsync(
                 tenantId,
-                null,
+                performedBy,
                 "delete",
                 "ingredient",
                 ingredientId);
