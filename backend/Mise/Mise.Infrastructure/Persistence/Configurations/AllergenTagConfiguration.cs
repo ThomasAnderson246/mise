@@ -21,6 +21,13 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("allergen_id")
                 .HasDefaultValueSql("gen_random_uuid()");
 
+            builder.Property(a => a.TenantId)
+                .HasColumnName("tenant_id")
+                .IsRequired();
+
+            builder.HasIndex(a => a.TenantId)
+                .IsUnique();
+
             builder.Property(a => a.Name)
                 .HasColumnName("name")
                 .HasMaxLength(100)
@@ -35,6 +42,11 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(a => a.IsMajor)
                 .HasColumnName("is_major")
                 .HasDefaultValue(false);
+
+            builder.HasOne(a => a.Tenant)
+                .WithMany(t => t.AllergenTags)
+                .HasForeignKey(a => a.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

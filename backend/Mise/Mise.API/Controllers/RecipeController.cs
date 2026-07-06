@@ -6,7 +6,7 @@ using Mise.Application.Interfaces;
 namespace Mise.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("/api/[controller]")]
     public class RecipeController : ControllerBase
     {
         private readonly IRecipeService _recipeService;

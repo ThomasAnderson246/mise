@@ -30,5 +30,6 @@ namespace Mise.Domain.Entities
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
         public ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
+        public ICollection<AllergenTag> AllergenTags { get; set; } = new List<AllergenTag>();
 	}
 }

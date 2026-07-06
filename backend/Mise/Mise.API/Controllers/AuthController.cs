@@ -8,7 +8,7 @@ using Mise.Application.Interfaces;
 namespace Mise.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("/api/[controller]")]
     public class AuthController : ControllerBase
     {
 

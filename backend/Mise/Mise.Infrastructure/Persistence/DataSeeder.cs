@@ -94,15 +94,15 @@ namespace Mise.Infrastructure.Persistence
             {
                 var allergens = new List<AllergenTag>
                 {
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Milk", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Eggs", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Fish", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Shell Fish", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Tree Nuts", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Peanuts", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Gluten", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Sesame", IsMajor = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Soy", IsMajor = true }
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Milk", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Eggs", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Fish", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Shell Fish", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Tree Nuts", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Peanuts", IsMajor = true, IsSystemDefined = true},
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Gluten", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Sesame", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Soy", IsMajor = true, IsSystemDefined = true }
                 };
 
                 await context.AllergenTags.AddRangeAsync(allergens);
@@ -125,11 +125,16 @@ namespace Mise.Infrastructure.Persistence
                     new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.read", Resource = "menuitem", Action = "read" },
                     new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.update", Resource = "menuitem", Action = "update" },
 
-                    //allergy permissions
+                    //ingredient permissions
                     new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.create", Resource="ingredient", Action="create" },
                     new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.read", Resource="ingredient", Action="read" },
                     new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.update", Resource="ingredient", Action="update" },
                     new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.delete", Resource="ingredient", Action="delete" },
+
+                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.create", Resource="allergen", Action = "create" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.read", Resource="allergen", Action="read" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.update", Resource="allergen", Action="update" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.delete", Resource="allergen", Action="delete" },
                 };
 
                 await context.Permissions.AddRangeAsync(permissions);

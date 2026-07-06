@@ -8,15 +8,18 @@ namespace Mise.Domain.Entities
 {
     public class AllergenTag
     {
-
+        public Guid TenantId { get; set; }
         public Guid AllergenId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description {  get; set; }
         public bool IsMajor { get; set; } = false;
+        public bool IsSystemDefined { get; set; } = false;
 
         // navigation
         public ICollection<IngredientAllergen> IngredientAllergens { get; set; } = new List<IngredientAllergen>();
         public ICollection<MenuItemAllergen> MenuItemAllergens { get; set; } = new List<MenuItemAllergen>();
+        public Tenant Tenant { get; set; } = null!;
+
 
     }
 }
