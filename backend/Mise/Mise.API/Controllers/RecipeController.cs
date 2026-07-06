@@ -103,7 +103,7 @@ namespace Mise.API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<RecipeResponse>.Fail("Invalid request."));
 
-            var recipe = await _recipeService.UpdateAsync(id, request, _currentUser.TenantId);
+            var recipe = await _recipeService.UpdateAsync(id, request, _currentUser.TenantId, _currentUser.UserId);
 
             var response = new RecipeResponse
             {
@@ -124,7 +124,7 @@ namespace Mise.API.Controllers
         [RequiresPermission("recipe", "delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _recipeService.DeleteAsync(id, _currentUser.TenantId);
+            await _recipeService.DeleteAsync(id, _currentUser.TenantId, _currentUser.UserId);
             return Ok(ApiResponse<string>.Ok("Deleted.", "Recipe deleted successfully."));
         }
 

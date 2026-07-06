@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
@@ -13,23 +14,25 @@ namespace Mise.Infrastructure.Services
 {
     public class RecipeService : IRecipeService
     {
-        private readonly IRecipeRepository _reciperRepository;
+        private readonly IRecipeRepository _recipeRepository;
         private readonly MiseDbContext _context;
+        private readonly IAuditLogServices _auditLogServices;
 
-        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context)
+        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context, IAuditLogServices auditLogServices)
         {
-            _reciperRepository = reciperRepository;
+            _recipeRepository = reciperRepository;
             _context = context;
+            _auditLogServices = auditLogServices;
         }
 
         public async Task<IEnumerable<Recipe>> GetAllAsync(Guid tenantId)
         {
-            return await _reciperRepository.GetAllByTenantAsync(tenantId);
+            return await _recipeRepository.GetAllByTenantAsync(tenantId);
         }
 
         public async Task<Recipe?> GetByIdAsync(Guid recipeId, Guid tenantId)
         {
-            return await _reciperRepository.GetByIdAndTenantAsync(recipeId, tenantId);
+            return await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId);
         }
 
         public async Task<Recipe> CreateAsync(
@@ -50,7 +53,7 @@ namespace Mise.Infrastructure.Services
                 UpdatedAt = DateTime.UtcNow,
             };
 
-            await _reciperRepository.AddAsync(recipe);
+            await _recipeRepository.AddAsync(recipe);
 
             // Create initial draft version of the recipe
             var version = new RecipeVersion
@@ -67,7 +70,7 @@ namespace Mise.Infrastructure.Services
 
             // set the current version
             recipe.CurrentVersionId = version.VersionId;
-            await _reciperRepository.UpdateAsync(recipe);
+            await _recipeRepository.UpdateAsync(recipe);
 
             // add categories if provided
             if (request.CategoryIds != null && request.CategoryIds.Any())
@@ -80,6 +83,20 @@ namespace Mise.Infrastructure.Services
 
                 await _context.RecipeCategories.AddRangeAsync(recipeCategories);
                 await _context.SaveChangesAsync();
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    createdBy,
+                    "create",
+                    "recipe",
+                    recipe.RecipeId,
+                    null,
+                    JsonSerializer.Serialize(new
+                    {
+                        recipe.Title,
+                        recipe.Description,
+                        recipe.ScalingMode,
+                        recipe.Status
+                    }));
             }
 
             return recipe;
@@ -88,16 +105,25 @@ namespace Mise.Infrastructure.Services
         public async Task<Recipe> UpdateAsync(
             Guid recipeId,
             UpdateRecipeRequest request,
-            Guid tenantId)
+            Guid tenantId, Guid performedBy)
         {
-            var recipe = await _reciperRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
                 ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var previousState = JsonSerializer.Serialize(new
+            {
+                recipe.Title,
+                recipe.Description,
+                recipe.ScalingMode,
+                recipe.Status
+            });
+
             if (request.Title != null) recipe.Title = request.Title;
             if (request.Description != null) recipe.Description = request.Description;
             if (request.ScalingMode != null) recipe.ScalingMode = request.ScalingMode;
             recipe.UpdatedAt = DateTime.UtcNow;
 
-            await _reciperRepository.UpdateAsync(recipe);
+            await _recipeRepository.UpdateAsync(recipe);
 
             //update the categories if they're provided.
 
@@ -107,6 +133,8 @@ namespace Mise.Infrastructure.Services
                     .Where(rc => rc.RecipeId == recipeId);
                 _context.RecipeCategories.RemoveRange(exisitng);
 
+                
+
                 var newCategories = request.CategoryIds.Select(cId => new RecipeCategory
                 {
                     RecipeId = recipeId,
@@ -115,18 +143,51 @@ namespace Mise.Infrastructure.Services
 
                 await _context.RecipeCategories.AddRangeAsync(newCategories);
                 await _context.SaveChangesAsync();
+
+                var newState = JsonSerializer.Serialize(new
+                {
+                    recipe.Title,
+                    recipe.Description,
+                    recipe.ScalingMode,
+                    recipe.Status
+                });
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "update",
+                    "recipe",
+                    recipe.RecipeId,
+                    previousState,
+                    newState);
             }
 
             return recipe;
         }
 
-        public async Task DeleteAsync(Guid recipeId, Guid tenantId)
+        public async Task DeleteAsync(Guid recipeId, Guid tenantId, Guid performedBy)
         {
-            var exists = await _reciperRepository.ExistsInTenantAsync(recipeId, tenantId);
-            if (!exists)
-                throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
 
-            await _reciperRepository.DeleteAsync(recipeId);
+            var previousState = JsonSerializer.Serialize(new
+            {
+                recipe.Title,
+                recipe.Description,
+                recipe.ScalingMode,
+                recipe.Status
+            });
+
+            await _recipeRepository.DeleteAsync(recipeId);
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "delete",
+                "recipe",
+                recipeId,
+                previousState,
+                null);
         }
 
         public async Task<Recipe> PublishAsync(
@@ -134,7 +195,7 @@ namespace Mise.Infrastructure.Services
             Guid tenantId,
             Guid publishedBy)
         {
-            var recipe = await _reciperRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
                 ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
 
             if (recipe.CurrentVersionId == null)
@@ -153,6 +214,19 @@ namespace Mise.Infrastructure.Services
             recipe.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                publishedBy,
+                "publish",
+                "recipe",
+                recipeId,
+                null,
+                JsonSerializer.Serialize(new
+                {
+                    recipe.Title,
+                    recipe.Description
+                }));
 
             return recipe;
         }
