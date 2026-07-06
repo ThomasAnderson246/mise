@@ -19,7 +19,14 @@ namespace Mise.API.Controllers
             _currentUser = currentUser;
         }
 
-        [HttpGet("id")]
+        [HttpGet]
+        [RequiresPermission("ingredient", "read")]
+        public async Task<IActionResult> GetAll()
+        {
+            var ingredients = await _ingredientService.GetAllAsync(_currentUser.TenantId);
+            return Ok(ApiResponse<IEnumerable<IngredientResponse>>.Ok(ingredients.Select(i => MapToResponse(i))));
+        }
+        [HttpGet("{id}")]
         [RequiresPermission("ingredient", "read")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -95,7 +102,8 @@ namespace Mise.API.Controllers
                 AllergenId = ia.AllergenTag.AllergenId,
                 Name = ia.AllergenTag.Name,
                 Description = ia.AllergenTag.Description,
-                IsMajor = ia.AllergenTag.IsMajor
+                IsMajor = ia.AllergenTag.IsMajor,
+                IsSystemDefined = ia.AllergenTag.IsSystemDefined
             }).ToList(),
             CreatedAt= i.CreatedAt,
             UpdatedAt = i.UpdatedAt,

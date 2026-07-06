@@ -12,5 +12,6 @@ namespace Mise.Application.DTOs
         public string Name { get; set; } = string.Empty;
         public string? Description {  get; set; }
         public bool IsMajor { get; set; } = false;
+        public bool IsSystemDefined { get; set; } = false;
     }
 }

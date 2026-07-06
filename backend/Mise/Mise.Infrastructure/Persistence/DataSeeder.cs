@@ -92,17 +92,22 @@ namespace Mise.Infrastructure.Persistence
 
             if (!await context.AllergenTags.AnyAsync())
             {
+                var tenant = await context.Tenants
+                    .FirstOrDefaultAsync(t => t.Slug == "test-restaurant");
+
+                if (tenant == null) return;
+
                 var allergens = new List<AllergenTag>
                 {
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Milk", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Eggs", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Fish", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Shell Fish", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Tree Nuts", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Peanuts", IsMajor = true, IsSystemDefined = true},
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Gluten", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Sesame", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), Name = "Soy", IsMajor = true, IsSystemDefined = true }
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Milk", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Eggs", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Fish", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Shell Fish", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Tree Nuts", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Peanuts", IsMajor = true, IsSystemDefined = true},
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Gluten", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Sesame", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Soy", IsMajor = true, IsSystemDefined = true }
                 };
 
                 await context.AllergenTags.AddRangeAsync(allergens);

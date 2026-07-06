@@ -25,7 +25,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("tenant_id")
                 .IsRequired();
 
-            builder.HasIndex(a => a.TenantId)
+            builder.HasIndex(a => new { a.TenantId, a.Name })
                 .IsUnique();
 
             builder.Property(a => a.Name)
@@ -41,6 +41,10 @@ namespace Mise.Infrastructure.Persistence.Configurations
 
             builder.Property(a => a.IsMajor)
                 .HasColumnName("is_major")
+                .HasDefaultValue(false);
+
+            builder.Property(a => a.IsSystemDefined)
+                .HasColumnName("is_system_defined")
                 .HasDefaultValue(false);
 
             builder.HasOne(a => a.Tenant)
