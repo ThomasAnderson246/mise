@@ -18,7 +18,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.HasKey(c => c.CategoryId);
 
             builder.Property(c => c.CategoryId)
-                .HasColumnName("category")
+                .HasColumnName("category_id")
                 .HasDefaultValueSql("gen_random_uuid()");
 
             builder.Property(c => c.TenantId)

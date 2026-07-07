@@ -140,6 +140,12 @@ namespace Mise.Infrastructure.Persistence
                     new Permission {PermissionId = Guid.NewGuid(), Name="allergen.read", Resource="allergen", Action="read" },
                     new Permission {PermissionId = Guid.NewGuid(), Name="allergen.update", Resource="allergen", Action="update" },
                     new Permission {PermissionId = Guid.NewGuid(), Name="allergen.delete", Resource="allergen", Action="delete" },
+
+                    new Permission {PermissionId = Guid.NewGuid(), Name="category.create", Resource="category", Action = "create" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="category.read", Resource="category", Action="read" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="category.update", Resource="category", Action="update" },
+                    new Permission {PermissionId = Guid.NewGuid(), Name="category.delete", Resource="category", Action="delete" },
+
                 };
 
                 await context.Permissions.AddRangeAsync(permissions);

@@ -22,7 +22,7 @@ namespace Mise.Infrastructure.Persistence.Context
         public DbSet<UnitType> UnitTypes { get; set; }
 
         public DbSet<AllergenTag> AllergenTags { get; set; }
-        public DbSet<Category> Category { get; set; }
+        public DbSet<Category> Categories { get; set; }
         public DbSet<Ingredient> Ingredients { get; set; }
 
         public DbSet<IngredientAllergen> IngredientAllergens { get; set; }
