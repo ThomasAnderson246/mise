@@ -114,54 +114,77 @@ namespace Mise.Infrastructure.Persistence
                 await context.SaveChangesAsync();
             }
 
-            // Seed permissions only if none exist
-            if (!await context.Permissions.AnyAsync())
+            // add new permissions as we add them
+            var allPermissions = new List<(string Name, string Resource, string Action)>
             {
-                var permissions = new List<Permission>
+                ("recipe.create", "recipe", "create"),
+                ("recipe.read", "recipe", "read"),
+                ("recipe.update", "recipe", "update"),
+                ("recipe.delete", "recipe", "delete"),
+                ("recipe.publish", "recipe", "publish"),
+                ("user.manage", "user", "manage"),
+                ("audit.read", "audit", "read"),
+                ("menuitem.create", "menuitem", "create"),
+                ("menuitem.read", "menuitem", "read"),
+                ("menuitem.update", "menuitem", "update"),
+                ("menuitem.delete", "menuitem", "delete"),
+                ("ingredient.create", "ingredient", "create"),
+                ("ingredient.read", "ingredient", "read"),
+                ("ingredient.update", "ingredient", "update"),
+                ("ingredient.delete", "ingredient", "delete"),
+                ("allergen.create", "allergen", "create"),
+                ("allergen.read", "allergen", "read"),
+                ("allergen.update", "allergen", "update"),
+                ("allergen.delete", "allergen", "delete"),
+                ("category.create", "category", "create"),
+                ("category.read", "category", "read"),
+                ("category.update", "category", "update"),
+                ("category.delete", "category", "delete"),
+                
+
+            };
+
+            var existingPermissionNames = await context.Permissions
+                .Select(p => p.Name)
+                .ToListAsync();
+
+            var newPermissions = allPermissions
+                .Where(p => !existingPermissionNames.Contains(p.Name))
+                .Select(p => new Permission
                 {
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.create", Resource = "recipe", Action = "create" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.read", Resource = "recipe", Action = "read" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.update", Resource = "recipe", Action = "update" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.delete", Resource = "recipe", Action = "delete" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "recipe.publish", Resource = "recipe", Action = "publish" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "user.manage", Resource = "user", Action = "manage" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "audit.read", Resource = "audit", Action = "read" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.create", Resource = "menuitem", Action = "create" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.read", Resource = "menuitem", Action = "read" },
-                    new Permission { PermissionId = Guid.NewGuid(), Name = "menuitem.update", Resource = "menuitem", Action = "update" },
+                    PermissionId = Guid.NewGuid(),
+                    Name = p.Name,
+                    Resource = p.Resource,
+                    Action = p.Action,
+                }).ToList();
 
-                    //ingredient permissions
-                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.create", Resource="ingredient", Action="create" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.read", Resource="ingredient", Action="read" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.update", Resource="ingredient", Action="update" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="ingredient.delete", Resource="ingredient", Action="delete" },
-
-                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.create", Resource="allergen", Action = "create" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.read", Resource="allergen", Action="read" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.update", Resource="allergen", Action="update" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="allergen.delete", Resource="allergen", Action="delete" },
-
-                    new Permission {PermissionId = Guid.NewGuid(), Name="category.create", Resource="category", Action = "create" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="category.read", Resource="category", Action="read" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="category.update", Resource="category", Action="update" },
-                    new Permission {PermissionId = Guid.NewGuid(), Name="category.delete", Resource="category", Action="delete" },
-
-                };
-
-                await context.Permissions.AddRangeAsync(permissions);
+            if (newPermissions.Any())
+            {
+                await context.Permissions.AddRangeAsync(newPermissions);
                 await context.SaveChangesAsync();
+            }
+            var existingRolePermissionIds = await context.RolePermissions
+                .Where(rp => rp.RoleId == chefRoleId)
+                .Select(rp => rp.PermissionId)
+                .ToListAsync();
 
-                // Assign all permissions to chef role
-                var rolePermissions = permissions.Select(p => new RolePermission
+            var allPermissionEntities = await context.Permissions.ToListAsync();
+
+            var newRolePermissions = allPermissionEntities
+                .Where(p => !existingRolePermissionIds.Contains(p.PermissionId))
+                .Select(p => new RolePermission
                 {
                     RoleId = chefRoleId,
                     PermissionId = p.PermissionId,
                     AssignedAt = DateTime.UtcNow
                 }).ToList();
 
-                await context.RolePermissions.AddRangeAsync(rolePermissions);
+            if (newRolePermissions.Any())
+            {
+                await context.RolePermissions.AddRangeAsync(newRolePermissions);
                 await context.SaveChangesAsync();
             }
+            
         }
     }
 }

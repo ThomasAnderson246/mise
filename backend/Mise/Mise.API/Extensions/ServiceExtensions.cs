@@ -33,6 +33,7 @@ namespace Mise.API.Extensions
             services.AddScoped<IAllergenTagRepository, AllergenTagRepository>();
             services.AddScoped<IIngredientRepository, IngredientRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
             return services;
         }
 
@@ -48,6 +49,7 @@ namespace Mise.API.Extensions
             services.AddScoped<IAllergenTagService, AllergenTagService>();
             services.AddScoped<IIngredientService, IngredientService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IUserService, UserService>();
 
             //rbac
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();

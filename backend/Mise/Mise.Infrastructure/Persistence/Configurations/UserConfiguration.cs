@@ -34,6 +34,8 @@ namespace Mise.Infrastructure.Persistence.Configurations
 
             builder.Property(u => u.UnitPreference).HasColumnName("unit_preference").HasMaxLength(10).IsRequired();
 
+            builder.Property(u => u.MustChangePassword).HasColumnName("must_change_password").HasDefaultValue(false);
+
             builder.Property(u => u.LastLoginAt).HasColumnName("last_login_at");
 
             builder.Property(u => u.CreatedAt).HasColumnName("created_at").IsRequired();

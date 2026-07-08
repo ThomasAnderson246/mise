@@ -17,6 +17,7 @@ namespace Mise.Domain.Entities
         public string LastName { get; set; } = string.Empty;
         public string Status { get; set; } = "pending";
         public string UnitPreference { get; set; } = "metric";
+        public bool MustChangePassword { get; set; } = false;
         public DateTime? LastLoginAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set;} = DateTime.Now;
