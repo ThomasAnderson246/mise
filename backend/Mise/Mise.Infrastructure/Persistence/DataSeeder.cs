@@ -16,7 +16,7 @@ namespace Mise.Infrastructure.Persistence
             if (!await context.Tenants.AnyAsync())
             {
                 // Create test tenant
-                var tenant = new Tenant
+                var newTenant = new Tenant
                 {
                     TenantId = Guid.NewGuid(),
                     Name = "Test Restaurant",
@@ -28,14 +28,14 @@ namespace Mise.Infrastructure.Persistence
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                await context.Tenants.AddAsync(tenant);
+                await context.Tenants.AddAsync(newTenant);
                 await context.SaveChangesAsync();
 
                 // Create chef role
                 var chefRole = new Role
                 {
                     RoleId = Guid.NewGuid(),
-                    TenantId = tenant.TenantId,
+                    TenantId = newTenant.TenantId,
                     Name = "chef",
                     IsSystemRole = true,
                     CreatedAt = DateTime.UtcNow,
@@ -53,7 +53,7 @@ namespace Mise.Infrastructure.Persistence
                 var user = new User
                 {
                     UserId = Guid.NewGuid(),
-                    TenantId = tenant.TenantId,
+                    TenantId = newTenant.TenantId,
                     Email = "chef@testrestaurant.com",
                     PasswordHash = passwordHash,
                     FirstName = "Test",
@@ -92,26 +92,65 @@ namespace Mise.Infrastructure.Persistence
 
             if (!await context.AllergenTags.AnyAsync())
             {
-                var tenant = await context.Tenants
+                var allergenTenent = await context.Tenants
                     .FirstOrDefaultAsync(t => t.Slug == "test-restaurant");
 
-                if (tenant == null) return;
+                if (allergenTenent == null) return;
 
                 var allergens = new List<AllergenTag>
                 {
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Milk", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Eggs", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Fish", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Shell Fish", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Tree Nuts", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Peanuts", IsMajor = true, IsSystemDefined = true},
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Gluten", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Sesame", IsMajor = true, IsSystemDefined = true },
-                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = tenant.TenantId, Name = "Soy", IsMajor = true, IsSystemDefined = true }
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Milk", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Eggs", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Fish", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Shell Fish", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Tree Nuts", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Peanuts", IsMajor = true, IsSystemDefined = true},
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Gluten", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Sesame", IsMajor = true, IsSystemDefined = true },
+                    new AllergenTag { AllergenId = Guid.NewGuid(), TenantId = allergenTenent.TenantId, Name = "Soy", IsMajor = true, IsSystemDefined = true }
                 };
 
                 await context.AllergenTags.AddRangeAsync(allergens);
                 await context.SaveChangesAsync();
+            }
+
+            var tenant = await context.Tenants
+                .FirstOrDefaultAsync(t => t.Slug == "test-restaurant");
+
+            if (tenant != null)
+            {
+                var existingRoleNames = await context.Roles
+                    .Where(r => r.TenantId == tenant.TenantId)
+                    .Select(r => r.Name)
+                    .ToListAsync();
+
+                var predefinedroles = new List<string>
+                {
+                    "owner",
+                    "head chef",
+                    "sous chef",
+                    "cook",
+                    "foh manager",
+                    "foh staff"
+                };
+
+                var newRoles = predefinedroles
+                    .Where(name => !existingRoleNames.Contains(name))
+                    .Select(name => new Role
+                    {
+                        RoleId = Guid.NewGuid(),
+                        TenantId = tenant.TenantId,
+                        Name = name,
+                        IsSystemRole = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    }).ToList();
+
+                if (newRoles.Any())
+                {
+                    await context.Roles.AddRangeAsync(newRoles);
+                    await context.SaveChangesAsync();
+                }
             }
 
             // add new permissions as we add them

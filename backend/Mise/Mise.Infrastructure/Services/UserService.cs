@@ -150,6 +150,9 @@ namespace Mise.Infrastructure.Services
             if (user.Status == "inactive")
                 throw new InvalidOperationException("User is already inactive.");
 
+            if (user.Status == "pending")
+                throw new InvalidOperationException("Cannot deactivate a pending user.");
+
             user.Status = "inactive";
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -161,8 +164,8 @@ namespace Mise.Infrastructure.Services
                 "deactivate",
                 "user",
                 user.UserId,
-                "active",
-                "inactive");
+                JsonSerializer.Serialize(new { status = "active" }),
+                JsonSerializer.Serialize(new { status = "inactive" }));
         }
 
         public async Task ReactivateAsync(Guid userId, Guid tenantId, Guid performedBy)
@@ -184,8 +187,8 @@ namespace Mise.Infrastructure.Services
                 "reactivate",
                 "user",
                 user.UserId,
-                "inactive",
-                "active");
+                JsonSerializer.Serialize(new { status = "inactive" }),
+                JsonSerializer.Serialize(new { status = "active"}));
         }
 
         public async Task AssignRoleAsync(

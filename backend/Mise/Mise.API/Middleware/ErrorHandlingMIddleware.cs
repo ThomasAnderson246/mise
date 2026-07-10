@@ -24,6 +24,7 @@ namespace Mise.API.Middleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred.");
+                await HandleExceptionAsync(context, ex);
             }
         }
 
@@ -49,6 +50,12 @@ namespace Mise.API.Middleware
                 {
                     success = false,
                     errors = new List<string> { exception.Message },
+                    statusCode = (int)HttpStatusCode.BadRequest
+                },
+                InvalidOperationException => new
+                {
+                    success = false,
+                    errors = new List<string>() { exception.Message },
                     statusCode = (int)HttpStatusCode.BadRequest
                 },
                 _ => new
