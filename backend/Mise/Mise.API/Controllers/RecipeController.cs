@@ -12,11 +12,13 @@ namespace Mise.API.Controllers
         private readonly IRecipeService _recipeService;
         private readonly ICurrentUserService _currentUser;
         private readonly ILogger<RecipeController> _logger;
+        private readonly ISubRecipeService _subRecipeService;
 
         public RecipeController(
-            IRecipeService recipeService, ICurrentUserService currentUser, ILogger<RecipeController> logger)
+            IRecipeService recipeService, ISubRecipeService subRecipeService, ICurrentUserService currentUser, ILogger<RecipeController> logger)
         {
             _recipeService = recipeService;
+            _subRecipeService = subRecipeService;
             _currentUser = currentUser;
             _logger = logger;
         }
@@ -151,6 +153,60 @@ namespace Mise.API.Controllers
             };
 
             return Ok(ApiResponse<RecipeResponse>.Ok(response, "Recipe published successfully."));
+        }
+
+        [HttpGet("{id}/subrecipes")]
+        [RequiresPermission("recipe","read")]
+        public async Task<IActionResult> GetSubRecipes (Guid id)
+        {
+            var subRecipes = await _subRecipeService.GetByParentAsync(id, _currentUser.TenantId);
+
+            var response = subRecipes.Select(sr => new SubRecipeResponse
+            {
+                ParentRecipeId = sr.ParentRecipeId,
+                SubRecipeId = sr.SubRecipeId,
+                SubRecipeTitle = sr.ChildRecipe.Title,
+                SubRecipeStatus = sr.ChildRecipe.Status
+            });
+
+            return Ok(ApiResponse<IEnumerable<SubRecipeResponse>>.Ok(response));
+        }
+
+        [HttpPost("{id}/subrecipes")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> AddSubRecipe(Guid id, [FromBody] AddSubRecipeRequest request)
+        {
+            try
+            {
+                await _subRecipeService.AddAsync(
+                    id, request.SubRecipeId, _currentUser.TenantId, _currentUser.UserId);
+
+                return Ok(ApiResponse<string>.Ok("Sub-recipe added.", "Sub-recipe added successfully."));
+            }
+            catch(KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpDelete("{id}/subrecipes/{subRecipeId}")]
+        [RequiresPermission("recipe","update")]
+        public async Task<IActionResult> RemoveSubRecipe(Guid id, Guid subRecipeId)
+        {
+            try
+            {
+                await _subRecipeService.RemoveAsync(
+                    id, subRecipeId, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Sub-recipe removed.", "Sub-recipe removed successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
         }
     }
 }
