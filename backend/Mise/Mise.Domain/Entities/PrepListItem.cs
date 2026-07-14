@@ -15,6 +15,7 @@ namespace Mise.Domain.Entities
         public bool IsComplete { get; set; } = false;
         public Guid? CompletedBy { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public decimal ScalingFactor { get; set; } = 1m;
 
         // navigation
         public PrepList PrepList { get; set; } = null!;

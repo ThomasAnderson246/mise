@@ -31,5 +31,6 @@ namespace Mise.Domain.Entities
         public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
         public ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
         public ICollection<AllergenTag> AllergenTags { get; set; } = new List<AllergenTag>();
+        public ICollection<UnitType> UnitTypes { get; set; } = new List<UnitType>();
 	}
 }

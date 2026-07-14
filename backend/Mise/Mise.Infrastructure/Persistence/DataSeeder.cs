@@ -42,6 +42,8 @@ namespace Mise.Infrastructure.Persistence
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                
+
                 await context.Roles.AddAsync(chefRole);
                 await context.SaveChangesAsync();
 
@@ -88,6 +90,44 @@ namespace Mise.Infrastructure.Persistence
                 if (existingRole == null) return;
 
                 chefRoleId = existingRole.RoleId;
+            }
+
+            if (!await context.UnitTypes.AnyAsync())
+            {
+                var unitTenant = await context.Tenants
+                    .FirstOrDefaultAsync(t => t.Slug == "test-restaurant");
+
+                if (unitTenant != null)
+                {
+                    var unitTypes = new List<UnitType>
+                        {
+                            // weight
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Gram", Abbreviation = "g", System = "metric", MeasureType = "weight", ConversionFactor = 1m, IsSystemDefined = true},
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Kilogram", Abbreviation = "kg", System = "metric", MeasureType = "weight", ConversionFactor = 1000m, IsSystemDefined = true},
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Ounce", Abbreviation = "oz", System = "imperial", MeasureType = "weight", ConversionFactor = 28.3495m, IsSystemDefined= true},
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Pound", Abbreviation = "lb", System = "imperial", MeasureType = "weight", ConversionFactor = 453.592m, IsSystemDefined = true },
+
+                            // volume
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Milliliter", Abbreviation = "ml", System = "metric", MeasureType = "volume", ConversionFactor = 1m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Liter", Abbreviation = "l", System = "metric", MeasureType = "volume", ConversionFactor = 1000m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Teaspoon", Abbreviation = "tsp", System = "imperial", MeasureType = "volume", ConversionFactor = 4.92892m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Tablespoon", Abbreviation = "tbsp", System = "imperial", MeasureType = "volume", ConversionFactor = 14.7868m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Fluid Ounce", Abbreviation = "fl oz", System = "imperial", MeasureType = "volume", ConversionFactor = 29.573m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Cup", Abbreviation = "c", System="imperial", MeasureType="volume", ConversionFactor=236.588m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Pint", Abbreviation = "pt", System = "imperial", MeasureType = "volume", ConversionFactor = 473.176m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Quart", Abbreviation = "qt", System = "imperial", MeasureType="volume", ConversionFactor = 946.353m, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Gallon", Abbreviation = "gal", System = "imperial", MeasureType = "volume", ConversionFactor = 3785.41m, IsSystemDefined = true },
+
+                            //count - universal
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Each", Abbreviation = "ea", System = "universal", MeasureType = "count", IsNonConvertible = true, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Dozen", Abbreviation = "dz", System = "universal", MeasureType = "count", IsNonConvertible = true, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Pinch", Abbreviation = "pinch", System = "universal", MeasureType = "count", IsNonConvertible = true, IsSystemDefined = true },
+                            new UnitType {UnitTypeId = Guid.NewGuid(), TenantId = unitTenant.TenantId, Name = "Bunch", Abbreviation = "bunch", System = "universal", MeasureType = "count", IsNonConvertible = true, IsSystemDefined = true },
+                        };
+
+                    await context.UnitTypes.AddRangeAsync(unitTypes);
+                    await context.SaveChangesAsync();
+                }
             }
 
             if (!await context.AllergenTags.AnyAsync())
@@ -179,6 +219,10 @@ namespace Mise.Infrastructure.Persistence
                 ("category.read", "category", "read"),
                 ("category.update", "category", "update"),
                 ("category.delete", "category", "delete"),
+                ("unit.create", "unit", "create"),
+                ("unit.read", "unit", "read"),
+                ("unit.update", "unit", "update"),
+                ("unit.delete", "unit", "delete"),
                 
 
             };

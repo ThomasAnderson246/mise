@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mise.Infrastructure.Persistence.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mise.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiseDbContext))]
-    partial class MiseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260713183250_UnitTypeTenantScoped")]
+    partial class UnitTypeTenantScoped
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -696,13 +699,6 @@ namespace Mise.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("RecipeId")
                         .HasColumnType("uuid")
                         .HasColumnName("recipe_id");
-
-                    b.Property<decimal>("ScalingFactor")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(10, 4)
-                        .HasColumnType("numeric(10,4)")
-                        .HasDefaultValue(1m)
-                        .HasColumnName("scaling_factor");
 
                     b.HasKey("PrepListItemId");
 

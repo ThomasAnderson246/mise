@@ -21,6 +21,10 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("unit_type_id")
                 .HasDefaultValueSql("gen_random_uuid()");
 
+            builder.Property(u => u.TenantId)
+                .HasColumnName("tenant_id")
+                .IsRequired();
+
             builder.Property(u => u.Name)
                 .HasColumnName("name")
                 .HasMaxLength(50)
@@ -51,6 +55,18 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(u => u.IsNonConvertible)
                 .HasColumnName("is_non_convertible")
                 .HasDefaultValue(false);
+
+            builder.Property(u => u.IsSystemDefined)
+                .HasColumnName("is_system_defined")
+                .HasDefaultValue(false);
+
+            builder.HasIndex(u => new { u.TenantId, u.Name })
+                .IsUnique();
+
+            builder.HasOne(u => u.Tenant)
+                .WithMany()
+                .HasForeignKey(u => u.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

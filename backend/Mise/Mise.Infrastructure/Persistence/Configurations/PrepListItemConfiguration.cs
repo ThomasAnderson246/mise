@@ -44,6 +44,11 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(pli => pli.CompletedAt)
                 .HasColumnName("completed_at");
 
+            builder.Property(pli => pli.ScalingFactor)
+                .HasColumnName("scaling_factor")
+                .HasPrecision(10, 4)
+                .HasDefaultValue(1m);
+
             builder.HasOne(pli => pli.PrepList)
                 .WithMany(pl => pl.Items)
                 .HasForeignKey(pli => pli.PrepListId)
