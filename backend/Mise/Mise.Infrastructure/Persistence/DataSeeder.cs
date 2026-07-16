@@ -223,6 +223,10 @@ namespace Mise.Infrastructure.Persistence
                 ("unit.read", "unit", "read"),
                 ("unit.update", "unit", "update"),
                 ("unit.delete", "unit", "delete"),
+                ("preplist.create", "preplist", "create"),
+                ("preplist.read", "preplist", "read"),
+                ("preplist.update", "preplist", "update"),
+                ("preplist.delete", "preplist", "delete"),
                 
 
             };

@@ -36,6 +36,7 @@ namespace Mise.API.Extensions
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IUnitTypeRepository, UnitTypeRepository>();
+            services.AddScoped<IPrepListRepository, PrepListRepository>();
             return services;
         }
 
@@ -55,6 +56,7 @@ namespace Mise.API.Extensions
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<ISubRecipeService, SubRecipeService>();
             services.AddScoped<IUnitTypeService, UnitTypeService>();
+            services.AddScoped<IPrepListService, PrepListService>();
 
             //rbac
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
