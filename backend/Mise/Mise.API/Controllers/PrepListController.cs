@@ -198,6 +198,51 @@ namespace Mise.API.Controllers
             }
         }
 
+        [HttpPost("{id}/items/{itemId}/force-complete")]
+        [RequiresPermission("preplist", "manage")]
+        public async Task<IActionResult> ForceCompleteItem(Guid id, Guid itemId)
+        {
+            try
+            {
+                var prepList = await _prepListService.ForceCompleteItemAsync(
+                    id, itemId, _currentUser.TenantId, _currentUser.UserId);
+
+                return Ok(ApiResponse<PrepListResponse>.Ok(
+                    MapToResponse(prepList), "Item marked complete."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPost("{id}/force-complete")]
+        [RequiresPermission("preplist", "manage")]
+        public async Task<IActionResult> ForceCompletePrepList(Guid id)
+        {
+            try
+            {
+                var prepList = await _prepListService.ForceCompletePrepListAsync(
+                    id, _currentUser.TenantId, _currentUser.UserId);
+
+                return Ok(ApiResponse<PrepListResponse>.Ok(
+                    MapToResponse(prepList), "Prep list ompleted."));
+
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(ApiResponse<PrepListResponse>.Fail("Prep list not found."));
+            }
+            catch(InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+        }
+
 
 
 

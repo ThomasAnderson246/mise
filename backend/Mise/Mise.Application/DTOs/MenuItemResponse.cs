@@ -15,7 +15,7 @@ namespace Mise.Application.DTOs
         public string? Course { get; set; }
         public string Status { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
-        public Guid? CreatedBy { get; set; };
+        public Guid? CreatedBy { get; set; }
         public string? CreatedByName { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

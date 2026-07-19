@@ -284,10 +284,13 @@ namespace Mise.Infrastructure.Services
             Guid prepListId,
             Guid itemId,
             Guid tenantId,
-            Guid completedBy)
+            Guid completedBy
+            )
         {
             var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
                 ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+
+            
 
             var item = prepList.Items.FirstOrDefault(i => i.PrepListItemId == itemId)
                 ?? throw new KeyNotFoundException($"Prep list item {itemId} not found.");
@@ -334,6 +337,8 @@ namespace Mise.Infrastructure.Services
             var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
                 ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
 
+            
+
             if (prepList.IsComplete)
                 throw new InvalidOperationException("Prep list is already complete.");
 
@@ -353,6 +358,120 @@ namespace Mise.Infrastructure.Services
                     tenantId,
                     completedBy,
                     "complete",
+                    "prep_list",
+                    prepListId,
+                    null,
+                    JsonSerializer.Serialize(new { CompletedAt = prepList.CompletedAt }));
+
+                await transaction.CommitAsync();
+
+                return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                    ?? prepList;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<PrepListSummaryResponse>> GetSummaryAsync(Guid tenantId)
+        {
+            var prepLists = await _context.PrepLists
+                .Where(pl => pl.TenantId == tenantId && !pl.IsComplete)
+                .Include(pl => pl.Items)
+                .Include(pl => pl.CreatedByUser)
+                .OrderBy(pl => pl.CreatedAt)
+                .ToListAsync();
+
+            return prepLists.Select(pl => new PrepListSummaryResponse
+            {
+                PrepListId = pl.PrepListId,
+                Name = pl.Name,
+                CreatedBy = pl.CreatedBy,
+                CreatedByName = pl.CreatedByUser != null
+                    ? $"{pl.CreatedByUser.FirstName} {pl.CreatedByUser.LastName}"
+                    : null,
+                TotalItems = pl.Items.Count,
+                CompletedItems = pl.Items.Count(i => i.IsComplete),
+                IsComplete = pl.IsComplete,
+                CreatedAt = pl.CreatedAt
+            });
+        }
+
+        public async Task<PrepList> ForceCompleteItemAsync(
+            Guid prepListId,
+            Guid itemId,
+            Guid tenantId,
+            Guid completedBy)
+        {
+            var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+
+            var item = prepList.Items.FirstOrDefault(i => i.PrepListItemId == itemId)
+                ?? throw new KeyNotFoundException($"Prep list item {itemId} not found.");
+
+            if (item.IsComplete)
+                throw new InvalidOperationException("Item is already complete.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync(0);
+            try
+            {
+                item.IsComplete = true;
+                item.CompletedBy = completedBy;
+                item.CompletedAt = DateTime.UtcNow;
+
+                _context.PrepListItems.Update(item);
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    completedBy,
+                    "force_complete_item",
+                    "prep_list",
+                    prepListId,
+                    null,
+                    JsonSerializer.Serialize(new { itemId = itemId }));
+
+                await transaction.CommitAsync();
+
+                return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                    ?? prepList;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<PrepList> ForceCompletePrepListAsync(
+            Guid prepListId,
+            Guid tenantId,
+            Guid completedBy)
+        {
+            var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+
+            if (prepList.IsComplete)
+                throw new InvalidOperationException("Prep list is already complete.");
+
+            var hasIncompleteItems = prepList.Items.Any(i => !i.IsComplete);
+            if (hasIncompleteItems)
+                throw new InvalidOperationException("All items must be completed before completing theh prep list.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                prepList.IsComplete = true;
+                prepList.CompletedAt = DateTime.UtcNow;
+
+                await _prepListRepository.UpdateAsync(prepList);
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    completedBy,
+                    "force_complete",
                     "prep_list",
                     prepListId,
                     null,

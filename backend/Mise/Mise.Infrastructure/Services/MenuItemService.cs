@@ -415,5 +415,108 @@ namespace Mise.Infrastructure.Services
             }
         }
 
+        public async Task<MenuItem> AddManualAllergenAsync(
+            Guid menuItemId,
+            AddMenuItemAllergenRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var menuItem = await _menuItemRepository.GetByIdAndTenantAsync(menuItemId, tenantId)
+                ?? throw new KeyNotFoundException($"Menu item {menuItemId} not found.");
+
+            var allergenExists = await _context.AllergenTags
+                .AnyAsync(a => a.AllergenId == request.AllergenId && a.TenantId == tenantId);
+            if (!allergenExists)
+                throw new KeyNotFoundException($"Allergen {request.AllergenId} not found.");
+
+            var alreadyExists = await _context.MenuItemAllergens
+                .AnyAsync(mia => mia.MenuItemId == menuItemId && mia.AllergenId == request.AllergenId && mia.IsManual);
+
+            if (alreadyExists)
+                throw new InvalidOperationException("This allergen has already been manually added.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var menuItemAllergen = new MenuItemAllergen
+                {
+                    MenuItemAllergenId = Guid.NewGuid(),
+                    MenuItemId = menuItemId,
+                    AllergenId = request.AllergenId,
+                    SourceName = request.SourceName,
+                    SourceComponent = request.SourceComponent,
+                    IsDirect = false,
+                    IsManual = true,
+                    CreatedAt = DateTime.UtcNow,
+                };
+
+                await _context.MenuItemAllergens.AddAsync(menuItemAllergen);
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "add_manual_allergen",
+                    "menuitem",
+                    menuItemId,
+                    null,
+                    JsonSerializer.Serialize(new
+                    {
+                        AllergenId = request.AllergenId,
+                        request.SourceName
+                    }));
+
+                await transaction.CommitAsync();
+
+                return await _menuItemRepository.GetByIdAndTenantAsync(menuItemId, tenantId)
+                    ?? menuItem;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<MenuItem> RemoveManualAllergenAsync(
+            Guid menuItemId,
+            Guid menuItemAllergenId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var menuItem = await _menuItemRepository.GetByIdAndTenantAsync(menuItemId, tenantId)
+                ?? throw new KeyNotFoundException($"Menu item {menuItemId} not found.");
+
+            var allergen = await _context.MenuItemAllergens
+                .FirstOrDefaultAsync(MenuItemAllergen => MenuItemAllergen.MenuItemAllergenId == menuItemAllergenId && MenuItemAllergen.MenuItemId == menuItemId)
+                ?? throw new KeyNotFoundException("Allergen not found on this menu item.");
+
+            if (!allergen.IsManual)
+                throw new InvalidOperationException("Only manually added allergens can be removed.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.MenuItemAllergens.Remove(allergen);
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "remove_manual_allergen",
+                    "menuitem",
+                    menuItemId,
+                    JsonSerializer.Serialize(new { AllergenId = allergen.AllergenId }),
+                    null);
+
+                return await _menuItemRepository.GetByIdAndTenantAsync(menuItemId, tenantId)
+                    ?? menuItem;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

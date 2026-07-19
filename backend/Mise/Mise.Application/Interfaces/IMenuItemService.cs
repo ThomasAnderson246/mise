@@ -20,7 +20,7 @@ namespace Mise.Application.Interfaces
         Task<MenuItem> PublishAsync(Guid menuItemId, Guid tenantId, Guid performedBy);
         Task<MenuItem> AddRecipeAsync(Guid menuItemId, AddMenuItemRecipeRequest request, Guid tenantId, Guid performedBy);
         Task<MenuItem> RemoveRecipeAsync(Guid menuItemId, Guid recipeId, Guid tenantId, Guid performedBy);
-        Task<MenuItem> ResolveAllergensAsync(Guid menuItemId, AddMenuItemAllergenRequest request, Guid tenantId, Guid performedBy);
+        Task<MenuItem> ResolveAllergensAsync(Guid menuItemId,  Guid tenantId, Guid performedBy);
         Task<MenuItem> AddManualAllergenAsync(Guid menuItemId, AddMenuItemAllergenRequest request, Guid tenantId, Guid performeDby);
         Task<MenuItem> RemoveManualAllergenAsync(Guid menuItemId, Guid menuItemAllergenId, Guid tenantId, Guid performedBy);
 
