@@ -44,6 +44,9 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("is_complete")
                 .HasDefaultValue(false);
 
+            builder.Property(pl => pl.AssignedTo)
+                .HasColumnName("assigned_to");
+
             builder.HasOne(pl => pl.Tenant)
                 .WithMany(t => t.PrepLists)
                 .HasForeignKey(pl => pl.TenantId)
@@ -52,6 +55,11 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.HasOne(pl => pl.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(pl => pl.CreatedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(pl => pl.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(pl => pl.AssignedTo)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

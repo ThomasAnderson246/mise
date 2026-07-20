@@ -22,7 +22,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasDefaultValueSql("gen_random_uuid()");
 
             builder.Property(nq => nq.TenantId)
-                .HasColumnName("teantn_id")
+                .HasColumnName("tenant_id")
                 .IsRequired();
 
             builder.Property(nq => nq.RecipientId)

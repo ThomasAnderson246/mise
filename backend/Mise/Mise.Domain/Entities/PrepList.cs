@@ -15,6 +15,8 @@ namespace Mise.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CompletedAt { get; set; }
         public bool IsComplete { get; set; } = false;
+        public Guid? AssignedTo { get; set; }
+        public User? AssignedToUser { get; set; }
 
         // navigation
         public Tenant Tenant { get; set; } = null!;

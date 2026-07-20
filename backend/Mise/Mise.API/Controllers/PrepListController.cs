@@ -243,6 +243,14 @@ namespace Mise.API.Controllers
             }
         }
 
+        [HttpGet("summary")]
+        [RequiresPermission("preplist", "read")]
+        public async Task<IActionResult> GetSummary()
+        {
+            var summary = await _prepListService.GetSummaryAsync(_currentUser.TenantId);
+            return Ok(ApiResponse<IEnumerable<PrepListSummaryResponse>>.Ok(summary));
+        }
+
 
 
 
