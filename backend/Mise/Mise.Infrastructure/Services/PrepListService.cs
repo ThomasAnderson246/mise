@@ -16,6 +16,7 @@ namespace Mise.Infrastructure.Services
     {
         private readonly IPrepListRepository _prepListRepository;
         private readonly IAuditLogServices _auditLogServices;
+        private readonly INotificationService _notificationService;
         private readonly MiseDbContext _context;
 
         public PrepListService(IPrepListRepository prepListRepository, IAuditLogServices auditLogServices, MiseDbContext context)
@@ -487,6 +488,56 @@ namespace Mise.Infrastructure.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<PrepList> AssignPrepListAsync(
+            Guid prepListId,
+            Guid assignedTo,
+            Guid tenantId,
+            Guid assignedBy)
+        {
+            var prepList = await _prepListRepository.GetByIdAndTenantAsync(prepListId, tenantId)
+                ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+
+            var userExists = await _context.Users
+                .AnyAsync(u => u.UserId == assignedTo && u.TenantId == tenantId);
+            if (!userExists)
+                throw new KeyNotFoundException("User not found.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                prepList.AssignedTo = assignedTo;
+
+                await _prepListRepository.UpdateAsync(prepList);
+
+                await _notificationService.NotifyPrepListAssignedAsync(
+                    prepListId,
+                    prepList.Name,
+                    assignedTo,
+                    tenantId,
+                    assignedBy);
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    assignedBy,
+                    "assign",
+                    "prep_list",
+                    prepListId,
+                    null,
+                    System.Text.Json.JsonSerializer.Serialize(new { AssignedTo = assignedTo }));
+
+                await transaction.CommitAsync();
+                return prepList;
+
+               
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            
         }
     }
 }

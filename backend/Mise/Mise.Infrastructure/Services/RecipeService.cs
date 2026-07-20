@@ -9,6 +9,7 @@ using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
+using System.Runtime.InteropServices;
 
 namespace Mise.Infrastructure.Services
 {
@@ -17,6 +18,7 @@ namespace Mise.Infrastructure.Services
         private readonly IRecipeRepository _recipeRepository;
         private readonly MiseDbContext _context;
         private readonly IAuditLogServices _auditLogServices;
+        private readonly INotificationService _notificationService;
 
         public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context, IAuditLogServices auditLogServices)
         {
@@ -214,6 +216,12 @@ namespace Mise.Infrastructure.Services
             recipe.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await _notificationService.NotifyRecipePublishedAsync(
+                recipeId,
+                recipe.Title,
+                tenantId,
+                publishedBy);
 
             await _auditLogServices.LogAsync(
                 tenantId,

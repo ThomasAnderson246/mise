@@ -229,6 +229,9 @@ namespace Mise.Infrastructure.Persistence
                 ("preplist.delete", "preplist", "delete"),
                 ("preplist.complete", "preplist", "complete"),
                 ("preplist.manage", "preplist", "manage"),
+                ("notification.read", "notification", "read"),
+                ("notification.send", "notification", "send"),
+                ("notification.broadcast", "notification", "broadcast")
                 
 
             };

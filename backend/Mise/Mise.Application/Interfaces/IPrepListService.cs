@@ -23,5 +23,7 @@ namespace Mise.Application.Interfaces
         Task<IEnumerable<PrepListSummaryResponse>> GetSummaryAsync(Guid tenantId);
         Task<PrepList> ForceCompleteItemAsync(Guid prepListId, Guid itemId, Guid tenantId, Guid performedBy);
         Task<PrepList> ForceCompletePrepListAsync(Guid prepListId, Guid tenantId, Guid performedBy);
+
+        Task<PrepList> AssignPrepListAsync(Guid prepListId, Guid assignedTo, Guid tenantId, Guid assignedBy);
     }
 }

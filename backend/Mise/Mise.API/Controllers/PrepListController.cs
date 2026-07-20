@@ -251,6 +251,24 @@ namespace Mise.API.Controllers
             return Ok(ApiResponse<IEnumerable<PrepListSummaryResponse>>.Ok(summary));
         }
 
+        [HttpPost("{id}/assign")]
+        [RequiresPermission("preplist", "manage")]
+        public async Task<IActionResult> Assign(Guid id, [FromBody] AssignPrepListRequest request)
+        {
+            try
+            {
+                var prepList = await _prepListService.AssignPrepListAsync(
+                    id, request.AssignedTo, _currentUser.TenantId, _currentUser.UserId);
+
+                return Ok(ApiResponse<PrepListResponse>.Ok(
+                    MapToResponse(prepList), "Prep list assigned."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+        }
+
 
 
 
@@ -266,6 +284,10 @@ namespace Mise.API.Controllers
             IsComplete = pl.IsComplete,
             CompletedAt = pl.CompletedAt,
             CreatedAt = pl.CreatedAt,
+            AssignedTo = pl.AssignedTo,
+            AssignedToName = pl.AssignedToUser != null
+                ? $"{pl.AssignedToUser.FirstName} {pl.AssignedToUser.LastName}"
+                : null,
             Items = pl.Items.Select(i => new PrepListItemResponse
             {
                 PrepListItemId = i.PrepListItemId,

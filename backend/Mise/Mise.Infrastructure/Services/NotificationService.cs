@@ -27,7 +27,7 @@ namespace Mise.Infrastructure.Services
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Notification>> GetUnreadforUserAsync(Guid userId, Guid tenantId)
+        public async Task<IEnumerable<Notification>> GetUnreadForUserAsync(Guid userId, Guid tenantId)
         {
             return await _context.Notifications
                 .Where(n => n.RecipientId == userId && n.TenantId == tenantId && !n.IsRead)
@@ -126,6 +126,65 @@ namespace Mise.Infrastructure.Services
             foreach (var notification in notifications)
                 await QueueNotificationAsync (notification);
 
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task NotifyPrepListAssignedAsync(
+            Guid prepListId,
+            string prepListName,
+            Guid assignedTo,
+            Guid tenantId,
+            Guid assignedBy)
+        {
+            var assigner = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == assignedBy)
+                ?? throw new KeyNotFoundException("Assigner not found.");
+
+            var notification = new Notification
+            {
+                NotificationId = Guid.NewGuid(),
+                TenantId = tenantId,
+                RecipientId = assignedTo,
+                Title = "Prep List Assigned",
+                Message = $"{assigner.FirstName} {assigner.LastName} has assigned you the prep list: {prepListName}.",
+                Type = "preplist_assigned",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _context.Notifications.AddAsync(notification);
+            await QueueNotificationAsync(notification);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MarkAsReadAsync(
+            Guid notificationId,
+            Guid userId,
+            Guid tenantId)
+        {
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.NotificationId == notificationId &&
+                    n.RecipientId == userId &&
+                    n.TenantId == tenantId)
+                ?? throw new KeyNotFoundException("Notification not found.");
+
+            notification.IsRead = true;
+            notification.ReadAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MarkAllAsReadAsync(Guid userId, Guid tenantId)
+        {
+            var unread = await _context.Notifications
+                .Where(n => n.RecipientId == userId && n.TenantId == tenantId && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var  notification in unread)
+            {
+                notification.IsRead = true;
+                notification.ReadAt = DateTime.UtcNow;
+            }
             await _context.SaveChangesAsync();
         }
 

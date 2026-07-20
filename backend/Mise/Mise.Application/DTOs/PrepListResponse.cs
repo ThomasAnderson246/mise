@@ -17,5 +17,7 @@ namespace Mise.Application.DTOs
         public DateTime? CompletedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public List<PrepListItemResponse> Items { get; set; } = new();
+        public Guid? AssignedTo { get; set; }
+        public string? AssignedToName { get; set; }
     }
 }

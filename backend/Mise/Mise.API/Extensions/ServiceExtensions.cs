@@ -59,6 +59,7 @@ namespace Mise.API.Extensions
             services.AddScoped<IUnitTypeService, UnitTypeService>();
             services.AddScoped<IPrepListService, PrepListService>();
             services.AddScoped<IMenuItemService, MenuItemService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             //rbac
             services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
