@@ -100,7 +100,7 @@ namespace Mise.API.Controllers
 
         [HttpPut("{id}")]
         [RequiresPermission("recipe", "update")]
-        public async Task<IActionResult> Update(Guid id, [FromBody ] UpdateRecipeRequest request)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRecipeRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<RecipeResponse>.Fail("Invalid request."));
@@ -156,8 +156,8 @@ namespace Mise.API.Controllers
         }
 
         [HttpGet("{id}/subrecipes")]
-        [RequiresPermission("recipe","read")]
-        public async Task<IActionResult> GetSubRecipes (Guid id)
+        [RequiresPermission("recipe", "read")]
+        public async Task<IActionResult> GetSubRecipes(Guid id)
         {
             var subRecipes = await _subRecipeService.GetByParentAsync(id, _currentUser.TenantId);
 
@@ -183,7 +183,7 @@ namespace Mise.API.Controllers
 
                 return Ok(ApiResponse<string>.Ok("Sub-recipe added.", "Sub-recipe added successfully."));
             }
-            catch(KeyNotFoundException ex)
+            catch (KeyNotFoundException ex)
             {
                 return NotFound(ApiResponse<string>.Fail(ex.Message));
             }
@@ -194,7 +194,7 @@ namespace Mise.API.Controllers
         }
 
         [HttpDelete("{id}/subrecipes/{subRecipeId}")]
-        [RequiresPermission("recipe","update")]
+        [RequiresPermission("recipe", "update")]
         public async Task<IActionResult> RemoveSubRecipe(Guid id, Guid subRecipeId)
         {
             try

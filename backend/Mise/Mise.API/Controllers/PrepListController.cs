@@ -27,7 +27,7 @@ namespace Mise.API.Controllers
             return Ok(ApiResponse<IEnumerable<PrepListResponse>>.Ok(
                 prepLists.Select(pl => MapToResponse(pl))));
 
-            
+
         }
 
         [HttpGet("{id}")]
@@ -148,7 +148,7 @@ namespace Mise.API.Controllers
             {
                 return NotFound(ApiResponse<PrepListResponse>.Fail(ex.Message));
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<PrepListResponse>.Fail(ex.Message));
             }
@@ -237,7 +237,7 @@ namespace Mise.API.Controllers
             {
                 return NotFound(ApiResponse<PrepListResponse>.Fail("Prep list not found."));
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<PrepListResponse>.Fail(ex.Message));
             }

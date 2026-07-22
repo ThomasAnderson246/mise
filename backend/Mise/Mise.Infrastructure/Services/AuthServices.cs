@@ -151,5 +151,19 @@ namespace Mise.Infrastructure.Services
             refreshToken.RevokedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<string>> GetUserPermissionsAsync(Guid userId)
+        {
+            var userRole = await _context.UserRoles
+                .Include(ur => ur.Role)
+                    .ThenInclude(rp => rp.RolePermissions)
+                        .ThenInclude(p => p.Permission)
+                .FirstOrDefaultAsync(ur => ur.UserId == userId);
+
+            return userRole.Role.RolePermissions
+                .Select(rp => $"{rp.Permission.Resource}.{rp.Permission.Action}")
+                .ToList();
+
+        }
     }
 }

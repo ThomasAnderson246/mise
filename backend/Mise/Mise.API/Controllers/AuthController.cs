@@ -150,5 +150,13 @@ namespace Mise.API.Controllers
                 message = "You have recipe.create permission."
             }));
         }
+
+        [HttpGet("permissions")]
+        [Authorize]
+        public async Task<IActionResult> GetPermissions()
+        {
+            var permissions = await _authService.GetUserPermissionsAsync(_currentUser.UserId);
+            return Ok(ApiResponse<IEnumerable<string>>.Ok(permissions));
+        }
     }
 }

@@ -44,7 +44,7 @@ namespace Mise.API.Controllers
         [RequiresPermission("menuitem", "read")]
         public async Task<IActionResult> GetByCourse(string course)
         {
-            var menuItems= await _menuItemService.GetByCourseAsync(_currentUser.TenantId, course);
+            var menuItems = await _menuItemService.GetByCourseAsync(_currentUser.TenantId, course);
             return Ok(ApiResponse<IEnumerable<MenuItemResponse>>.Ok(menuItems.Select(mi => MapToResponse(mi))));
         }
 
@@ -202,13 +202,14 @@ namespace Mise.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ApiResponse<MenuItemResponse>.Fail(ex.Message));
-            }catch (InvalidOperationException ex)
+            }
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<MenuItemResponse>.Fail(ex.Message));
             }
         }
 
-        [HttpDelete("{id}/allergens/{allergenId")]
+        [HttpDelete("{id}/allergens/{allergenId}")]
         [RequiresPermission("menuitem", "update")]
         public async Task<IActionResult> RemoveManualAllergen(Guid id, Guid allergenId)
         {
@@ -219,7 +220,7 @@ namespace Mise.API.Controllers
 
                 return Ok(ApiResponse<MenuItemResponse>.Ok(MapToResponse(menuItem), "Allergen removed."));
             }
-            catch(KeyNotFoundException ex)
+            catch (KeyNotFoundException ex)
             {
                 return NotFound(ApiResponse<MenuItemResponse>.Fail(ex.Message));
             }

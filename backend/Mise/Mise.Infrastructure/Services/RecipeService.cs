@@ -20,11 +20,12 @@ namespace Mise.Infrastructure.Services
         private readonly IAuditLogServices _auditLogServices;
         private readonly INotificationService _notificationService;
 
-        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context, IAuditLogServices auditLogServices)
+        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context, IAuditLogServices auditLogServices, INotificationService notificationService)
         {
             _recipeRepository = reciperRepository;
             _context = context;
             _auditLogServices = auditLogServices;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<Recipe>> GetAllAsync(Guid tenantId)
@@ -212,16 +213,28 @@ namespace Mise.Infrastructure.Services
             version.PublishedBy = publishedBy;
             version.PublishedAt = DateTime.UtcNow;
 
+            var wasAlreadyPublished = recipe.Status == "published";
+
             recipe.Status = "published";
             recipe.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
-            await _notificationService.NotifyRecipePublishedAsync(
-                recipeId,
-                recipe.Title,
-                tenantId,
-                publishedBy);
+            if (wasAlreadyPublished)
+            {
+                await _notificationService.NotifyRecipeUpdatedAsync(
+                    recipeId, recipe.Title, tenantId, publishedBy);
+            }
+            else
+            {
+                await _notificationService.NotifyRecipePublishedAsync(
+                    recipeId,
+                    recipe.Title,
+                    tenantId,
+                    publishedBy);
+            }
+
+            
 
             await _auditLogServices.LogAsync(
                 tenantId,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getTenantBySlug } from "../api/tenantApi";
-import { Login } from "../api/authApi";
+import { getPermissions, Login } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 import type { TenantResponse } from "../api/tenantApi";
 
@@ -53,12 +53,18 @@ function LoginPage() {
             const response = await Login({
                 email, password, tenantId: tenant.tenantId
             })
+
+            const permissions = await getPermissions(response.token);
+            console.log("Permissions loaded: ", permissions);
             setUser({
                 token: response.token,
                 email: response.email,
                 firstName: response.firstName,
                 lastName: response.lastName,
-                tenantId: response.tenantId
+                tenantId: response.tenantId,
+                role: response.role,
+                permissions: permissions
+                
             })
             navigate(`/${slug}/dashboard`, {replace: true})
         } catch {
@@ -86,10 +92,10 @@ function LoginPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#6B1A2B]">
-            <div className="bg-white rounded-2x1 shadow-x1 w-full max-w-md px-10 py-12">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md px-10 py-12">
             
                 <div className="mb-8 text-center">
-                    <h1 className="text-4x1 font-bold text-[#6B1A2B] tracking-tigh">Mise</h1>"
+                    <h1 className="text-4xl font-bold text-[#6B1A2B] tracking-tight">Mise</h1>
                     <p className="text-sm text-gray-500 mt-1">{tenant.name}</p>
                 </div>
 
@@ -115,7 +121,7 @@ function LoginPage() {
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             required
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus: ring-2 focus:ring-[#6B1A2B] focus: border-transparent"
+                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#6B1A2B] focus:border-transparent"
                             placeholder="you@restaurant.com"
                         />
                     </div>

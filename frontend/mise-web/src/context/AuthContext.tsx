@@ -7,6 +7,8 @@ interface AuthUser {
     firstName: string
     lastName: string
     tenantId: string
+    role: string
+    permissions: string[]
 }
 
 interface AuthContextType {
@@ -14,6 +16,7 @@ interface AuthContextType {
     setUser: (user: AuthUser | null) => void
     isAuthenticated: boolean
     logout: () => void
+    hasPermission: (resource: string, action: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -25,9 +28,13 @@ export function AuthProvider({children}: {children: ReactNode}) {
         setUser(null)
     }
 
+    function hasPermission(resource: string, action: string): boolean{
+    return user?.permissions.includes(`${resource}.${action}`) ?? false
+}
+
     return(
         <AuthContext.Provider value={{
-            user, setUser, isAuthenticated: user !== null, logout
+            user, setUser, isAuthenticated: user !== null, logout, hasPermission
         }}>
             {children}
         </AuthContext.Provider>
@@ -40,3 +47,4 @@ export function useAuth() {
         throw new Error('useAuth must be used within AuthProvider')
     return context
 }
+

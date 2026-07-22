@@ -19,10 +19,11 @@ namespace Mise.Infrastructure.Services
         private readonly INotificationService _notificationService;
         private readonly MiseDbContext _context;
 
-        public PrepListService(IPrepListRepository prepListRepository, IAuditLogServices auditLogServices, MiseDbContext context)
+        public PrepListService(IPrepListRepository prepListRepository, IAuditLogServices auditLogServices, INotificationService notification, MiseDbContext context)
         {
             _prepListRepository = prepListRepository;
             _auditLogServices = auditLogServices;
+            _notificationService = notification;
             _context = context;
         }
 

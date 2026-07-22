@@ -25,7 +25,7 @@ namespace Mise.API.Controllers
         {
             var tenantId = _currentUserService.TenantId;
 
-            
+
 
             var logs = await _auditLogService.GetByTenantAsync(tenantId);
 

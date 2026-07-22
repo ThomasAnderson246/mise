@@ -15,7 +15,7 @@ namespace Mise.API.Controllers
     public class AllergenTagController : ControllerBase
     {
 
-        
+
         private readonly ICurrentUserService _currentUser;
         private readonly IAllergenTagService _allergenTagService;
 

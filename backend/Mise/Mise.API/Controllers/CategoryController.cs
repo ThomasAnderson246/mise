@@ -52,7 +52,7 @@ namespace Mise.API.Controllers
 
                 return Ok(ApiResponse<CategoryResponse>.Ok(MapToResponse(category), "Category created."));
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<CategoryResponse>.Fail(ex.Message));
             }

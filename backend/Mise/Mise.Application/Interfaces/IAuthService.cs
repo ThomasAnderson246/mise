@@ -17,5 +17,6 @@ namespace Mise.Application.Interfaces
         Task RevokeRefreshTokenAsync(string token);
         string HashPassword(string password);
         bool VerifyPassword(string password, string hash);
+        Task<IEnumerable<string>> GetUserPermissionsAsync(Guid UserId);
     }
 }

@@ -105,7 +105,7 @@ namespace Mise.API.Controllers
                 IsMajor = ia.AllergenTag.IsMajor,
                 IsSystemDefined = ia.AllergenTag.IsSystemDefined
             }).ToList(),
-            CreatedAt= i.CreatedAt,
+            CreatedAt = i.CreatedAt,
             UpdatedAt = i.UpdatedAt,
         };
     }
