@@ -5,7 +5,11 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5282'
 export interface RecipeItem{
     recipeId: string
     title: string
+    description: string | null
     status: string
+    scalingMode: string
+    tenantId: string
+    createdAt:string
     updatedAt: string
 }
 
