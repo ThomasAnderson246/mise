@@ -38,7 +38,7 @@ export function Sidebar() {
     }
 
     return (
-        <aside className="hidden md:flex flex-col w-56 min-h-screen bg-sidebar border-r border-sidebar-border">
+        <aside className="md:flex flex-col w-56 min-h-screen bg-sidebar border-r border-sidebar-border">
             <div className="px-4 py-5 border-b border-sidebar-border">
                 <span className="text-xl font-bold text-secondary">Mise</span>
             </div>
