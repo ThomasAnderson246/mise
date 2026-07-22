@@ -1,7 +1,7 @@
-import {Routes, Route, useParams, useNavigate } from 'react-router-dom'
+import {Routes, Route, useParams, /*useNavigate*/ } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
-import { useAuth } from './context/AuthContext'
+//import { useAuth } from './context/AuthContext'
 import { Layout } from './components/Layout'
 import DashBoardPage from './pages/DashboardPage'
 

@@ -21,7 +21,8 @@ const navItems: NavItem[] = [
     {label: 'Users', path: 'users', icon:'', permission: {resource:'user', action:'manage'}},
     {label: 'Roles', path: 'roles', icon:'', permission: {resource:'user', action:'manage'}},
     {label: 'Audit Log', path: 'audit', icon:'',  permission: {resource:'audit', action:'read'}},
-    {label: 'Notifications', path: 'notifications', icon: '', permission: {resource:'notificaiton', action:'read'}}
+    {label: 'Notifications', path: 'notifications', icon: '', permission: {resource:'notification', action:'read'}},
+    
 ]
 
 export function Sidebar() {
@@ -67,12 +68,18 @@ export function Sidebar() {
             </nav>
             <div className="px-4 py-4 border-t border-sidebar-border">
                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center jusitfy-center text-primary-foreground text-xs font-medium">
-                        <p className="text-sm font-medium text-sidebar-foreground truncate">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-medium">
+                        
                             {user?.firstName?.[0]}{user?.lastName?.[0]}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">{user?.role}</p>
+                        
+                        
                     </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-sidebar-foreground truncate">
+                            {user?.firstName} {user?.lastName}
+                        </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{user?.role}</p>
                 </div>
                 <button
                 onClick={handleLogout}
