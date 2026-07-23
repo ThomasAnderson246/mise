@@ -251,5 +251,318 @@ namespace Mise.Infrastructure.Services
 
             return recipe;
         }
+
+        public async Task<Recipe> AddIngredientAsync(
+            Guid recipeId,
+            AddRecipeIngredientRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            if (recipe.CurrentVersionId == null)
+                throw new InvalidOperationException("Recipe has no current version.");
+
+            var ingredient = new RecipeIngredient
+            {
+                RecipeIngredientId = Guid.NewGuid(),
+                VersionId = recipe.CurrentVersionId.Value,
+                IngredientId = request.IngredientId,
+                Quantity = request.Quantity,
+                UnitTypeId = request.UnitTypeId,
+                DisplayOrder = request.DisplayOrder,
+                GroupId = request.GroupId,
+                IsNonConvertible = request.IsNonConvertible,
+                IsRatioAnchor = request.IsRatioAnchor,
+            };
+
+            await _context.RecipeIngredients.AddAsync(ingredient);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "add_ingredient",
+                "recipe",
+                recipeId,
+                null,
+                System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    request.IngredientId,
+                    request.Quantity
+                }));
+
+            return recipe;
+        }
+
+        public async Task<Recipe> UpdateIngredientAsync(
+            Guid recipeId,
+            Guid recipeIngredientId,
+            UpdateRecipeIngredientRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var ingredient = await _context.RecipeIngredients
+                .FirstOrDefaultAsync(ri => ri.RecipeIngredientId == recipeIngredientId
+                    && ri.VersionId == recipe.CurrentVersionId)
+                ?? throw new KeyNotFoundException($"Ingredient {recipeIngredientId} not found.");
+
+            var previousState = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                ingredient.Quantity,
+                ingredient.UnitTypeId,
+                ingredient.DisplayOrder
+            });
+
+            if (request.Quantity != null) ingredient.Quantity = request.Quantity.Value;
+            if (request.UnitTypeId != null) ingredient.UnitTypeId = request.UnitTypeId;
+            if (request.DisplayOrder != null) ingredient.DisplayOrder = request.DisplayOrder.Value;
+            if (request.GroupId != null) ingredient.GroupId = request.GroupId;
+
+            _context.RecipeIngredients.Update(ingredient);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "update_ingredient",
+                "recipe",
+                recipeId,
+                previousState,
+                System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    ingredient.Quantity,
+                    ingredient.UnitTypeId,
+                    ingredient.DisplayOrder
+                }));
+
+            return recipe;
+        }
+
+        public async Task<Recipe> RemoveIngredientAsync(
+            Guid recipeId,
+            Guid recipeIngredientId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var ingredient = await _context.RecipeIngredients
+                .FirstOrDefaultAsync(ri => ri.RecipeIngredientId == recipeIngredientId
+                    && ri.VersionId == recipe.CurrentVersionId)
+                ?? throw new KeyNotFoundException($"Ingredient {recipeIngredientId} not found.");
+
+            _context.RecipeIngredients.Remove(ingredient);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "remove_ingredient",
+                "recipe",
+                recipeId,
+                System.Text.Json.JsonSerializer.Serialize(new { recipeIngredientId }),
+                null);
+
+            return recipe;
+        }
+
+        public async Task<Recipe> AddStepAsync(
+            Guid recipeId,
+            AddRecipeStepRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            if (recipe.CurrentVersionId == null)
+                throw new InvalidOperationException("Recipe has no current version.");
+
+            var step = new RecipeStep
+            {
+                StepId = Guid.NewGuid(),
+                VersionId = recipe.CurrentVersionId.Value,
+                StepNumber = request.StepNumber,
+                Instruction = request.Instruction,
+                HasTimer = request.HasTimer,
+                TimerDuration = request.TimerDuration,
+                IsAsync = request.IsAsync,
+                AsyncGroupId = request.AsyncGroupId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _context.RecipeSteps.AddAsync(step);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "add_step",
+                "recipe",
+                recipeId,
+                null,
+                System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    step.StepNumber,
+                    step.Instruction
+                }));
+
+            return recipe;
+        }
+
+        public async Task<Recipe> UpdateStepAsync(
+            Guid recipeId,
+            Guid stepId,
+            UpdateRecipeStepRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var step = await _context.RecipeSteps
+                .FirstOrDefaultAsync(s => s.StepId == stepId
+                    && s.VersionId == recipe.CurrentVersionId)
+                ?? throw new KeyNotFoundException($"Step {stepId} not found.");
+
+            var previousState = JsonSerializer.Serialize(new
+            {
+                step.StepNumber,
+                step.Instruction,
+                step.HasTimer,
+                step.TimerDuration
+            });
+
+            if (request.Instruction != null) step.Instruction = request.Instruction;
+            if (request.StepNumber != null) step.StepNumber = request.StepNumber.Value;
+            if (request.HasTimer != null) step.HasTimer = request.HasTimer.Value;
+            if (request.TimerDuration != null) step.TimerDuration = request.TimerDuration.Value;
+            if (request.IsAsync != null) step.IsAsync = request.IsAsync.Value;
+            if (request.AsyncGroupId != null) step.AsyncGroupId = request.AsyncGroupId.Value;
+
+            _context.RecipeSteps.Update(step);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "update_step",
+                "recipe",
+                recipeId,
+                previousState,
+                JsonSerializer.Serialize(new
+                {
+                    step.StepNumber,
+                    step.Instruction,
+                    step.HasTimer,
+                    step.TimerDuration
+                }));
+
+            return recipe;
+        }
+
+        public async Task<Recipe> RemoveStepAsync(
+            Guid recipeId,
+            Guid stepId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var step = await _context.RecipeSteps
+                .FirstOrDefaultAsync(s => s.StepId == stepId
+                    && s.VersionId == recipe.CurrentVersionId)
+                ?? throw new KeyNotFoundException($"step {stepId} not found.");
+
+            _context.RecipeSteps.Remove(step);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "remove_step",
+                "recipe",
+                recipeId,
+                JsonSerializer.Serialize(new { stepId }),
+                null);
+
+            return recipe;
+        }
+
+        public async Task<Recipe> AddIngredientGroupAsync(
+            Guid recipeId,
+            AddRecipeIngredientGroupRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            if (recipe.CurrentVersionId == null)
+                throw new InvalidOperationException("recipe has no current version.");
+
+            var group = new RecipeIngredientGroup
+            {
+                GroupId = Guid.NewGuid(),
+                VersionId = recipe.CurrentVersionId.Value,
+                Name = request.Name,
+                DisplayOrder = request.DisplayOrder
+            };
+
+            await _context.RecipeIngredientGroups.AddAsync(group);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "add_ingredient_group",
+                "recipe",
+                recipeId,
+                null,
+                JsonSerializer.Serialize(new { group.Name }));
+
+            return recipe;
+        }
+
+        public async Task<Recipe> RemoveIngredientGroupAsync(
+            Guid recipeId,
+            Guid groupId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var group = await _context.RecipeIngredientGroups
+                .FirstOrDefaultAsync(g => g.GroupId == groupId
+                    && g.VersionId == recipe.CurrentVersionId)
+                ?? throw new KeyNotFoundException($"Grup {groupId} not found.");
+
+            _context.RecipeIngredientGroups.Remove(group);
+            await _context.SaveChangesAsync();
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "remove_ingredient_group",
+                "recipe",
+                recipeId,
+                JsonSerializer.Serialize(new { group.Name }),
+                null);
+
+            return recipe;
+        }
+    
+    
+    
     }
+
+    
 }

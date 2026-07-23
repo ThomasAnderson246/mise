@@ -262,5 +262,138 @@ namespace Mise.API.Controllers
                 return NotFound(ApiResponse<string>.Fail(ex.Message));
             }
         }
+
+        [HttpPost("{id}/ingredients")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> AddIngredient(Guid id, [FromBody] AddRecipeIngredientRequest request)
+        {
+            try
+            {
+                await _recipeService.AddIngredientAsync(id, request, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Ingredient added.", "Ingredient added to recipe."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch(InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPut("{id}/ingredients/{recipeIngredientId}")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> UpdateIngredient(Guid id, Guid recipeIngredientId, [FromBody] UpdateRecipeIngredientRequest request)
+        {
+            try
+            {
+                await _recipeService.UpdateIngredientAsync(id, recipeIngredientId, request, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Ingredient updated.", "Ingredient updated."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpDelete("{id}/ingredients/{recipeIngredientId}")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> RemoveIngredient(Guid id, Guid recipeIngredientId)
+        {
+            try
+            {
+                await _recipeService.RemoveIngredientAsync(id, recipeIngredientId, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Ingredient removed.", "Ingredient removed."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPost("{id}/steps")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> AddStep(Guid id, [FromBody] AddRecipeStepRequest request)
+        {
+            try
+            {
+                await _recipeService.AddStepAsync(id, request, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Step added.", "Step added to recipe."));
+            } 
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPut("{id}/steps/{stepId}")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> UpdateStep(Guid id, Guid stepId, [FromBody] UpdateRecipeStepRequest request)
+        {
+            try
+            {
+                await _recipeService.UpdateStepAsync(id, stepId, request, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Step updated.", "Step updated."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpDelete("{id}/steps{stepId}")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> RemoveStep(Guid id, Guid stepId)
+        {
+            try
+            {
+                await _recipeService.RemoveStepAsync(id, stepId, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("step removed.", "Step removed from recipe."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPost("{id}/groups")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> AddIngredientGroup(Guid id, [FromBody] AddRecipeIngredientGroupRequest request)
+        {
+            try
+            {
+                await _recipeService.AddIngredientGroupAsync(id, request, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Group added.", "Ingredient group added to recipe."));
+
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpDelete("{id}/groups/{groupId}")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> RemoveIngredientGroup(Guid id, Guid groupId)
+        {
+            try
+            {
+                await _recipeService.RemoveIngredientGroupAsync(id, groupId, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Group removed.", "Ingredient group removed."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
     }
 }
