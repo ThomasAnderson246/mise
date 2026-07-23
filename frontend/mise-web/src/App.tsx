@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage'
 import { Layout } from './components/Layout'
 import DashBoardPage from './pages/DashboardPage'
 import RecipesPage from './pages/RecipesPage'
+import RecipeDetailPage from './pages/RecipeDetailPage'
 
 function SlugRoutes() {
   const { slug } = useParams<{ slug: string}>()
@@ -15,6 +16,7 @@ function SlugRoutes() {
         <Route element={<Layout/>}>
           <Route path="dashboard" element={<DashBoardPage/>}/>
           <Route path="recipes" element={<RecipesPage/>}/>
+          <Route path="recipes/:recipeId" element={<RecipeDetailPage/>} />
         </Route>
       </Routes>
     </ProtectedRoute>

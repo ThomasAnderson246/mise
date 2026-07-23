@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getRecipes } from "@/api/recipeApi";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { Button } from "radix-ui/toolbar";
+import { Button } from "@/components/ui/button";
 //import { Badge } from "@/components/ui/badge";
 import type { RecipeItem } from "@/api/recipeApi";
 
@@ -50,14 +50,15 @@ export default function RecipesPage(){
         <div>
             <PageHeader
                 title="Recipes"
-                subtitle={`${recipes.length} recipes${recipes.length !== 1 ? 's' : ''} in your book`}
+                subtitle={`${recipes.length} recipe${recipes.length !== 1 ? 's' : ''} in your book`}
                 action={
                     hasPermission('recipe', 'create') ? (
                         <Button 
                             onClick={() => navigate(`/${slug}/recipes/new`)}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
+                            //className="bg-primary text-primary-foreground hover:bg-primary/90"
+                            variant="default"
                         >
-                            New Recipes
+                            New Recipe
                         </Button>
                     ) : undefined
                 }
