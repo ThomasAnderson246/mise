@@ -2,6 +2,13 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5282'
 
+export interface RecipeIngredientGroup {
+    groupId: string
+    name: string
+    displayOrder: number
+    ingredients: RecipeIngredient[]
+}
+
 export interface RecipeItem{
     recipeId: string
     title: string 
@@ -17,7 +24,21 @@ export interface RecipeStep{
     stepId: string
     stepNumber: number
     instruction: string
-    durationMinutes: number | null
+    hasTimer: boolean
+    timerDuration: number | null
+    isAsync: boolean
+    asyncGroupId: string | null
+    
+}
+
+export interface RecipeVersion{
+    versionId: string
+    versionNumber: number
+    isDraft: boolean
+    isPublished: boolean
+    recipeIngredientGroups: RecipeIngredientGroup[]
+    ingredients: RecipeIngredient[]
+    steps: RecipeStep[]
 }
 
 export interface RecipeIngredient {
@@ -25,7 +46,8 @@ export interface RecipeIngredient {
     ingredientName: string
     quantity :number
     unitName: string | null
-    notes: string | null
+    displayOrder: number
+    groupId: string | null
 }
 
 export interface RecipeDetail {
@@ -37,20 +59,11 @@ export interface RecipeDetail {
     tenantId: string
     createdAt: string
     updatedAt: string
-    currentVersion: {
-        versionId: string
-        versionNumber: number
-        isDraft: boolean
-        isPublished: boolean
-        steps: RecipeStep[]
-        ingredients: RecipeIngredient[]
-    } | null
     recipeCategories: {
-        category: {
-            categoryId: string
-            name: string
-        }
+        categoryId: string
+        name: string
     }[]
+    currentVersion: RecipeVersion | null
 }
 
 export async function getRecipes(token: string): Promise<RecipeItem[]>{

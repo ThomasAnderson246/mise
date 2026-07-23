@@ -37,6 +37,14 @@ namespace Mise.Infrastructure.Persistence.Repositories
                 .Include(r => r.CurrentVersion)
                     .ThenInclude(rv => rv!.Ingredients)
                         .ThenInclude(ri => ri.Ingredient)
+                .Include(r => r.CurrentVersion)
+                    .ThenInclude(rv => rv!.Ingredients)
+                        .ThenInclude(ri => ri.UnitType)
+                .Include(r => r.CurrentVersion)
+                    .ThenInclude(rv => rv!.Ingredients)
+                        .ThenInclude(ri => ri.Group)
+                .Include(r => r.CurrentVersion)
+                    .ThenInclude(rv => rv!.IngredientGroups)
                 .FirstOrDefaultAsync();
         }
 

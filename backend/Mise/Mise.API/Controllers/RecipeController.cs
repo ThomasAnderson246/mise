@@ -53,7 +53,7 @@ namespace Mise.API.Controllers
             if (recipe == null)
                 return NotFound(ApiResponse<RecipeResponse>.Fail("Recipe not found."));
 
-            var response = new RecipeResponse
+            var response = new RecipeDetailResponse
             {
                 RecipeId = recipe.RecipeId,
                 Title = recipe.Title,
@@ -62,10 +62,64 @@ namespace Mise.API.Controllers
                 ScalingMode = recipe.ScalingMode,
                 TenantId = recipe.TenantId,
                 CreatedAt = recipe.CreatedAt,
-                UpdatedAt = recipe.UpdatedAt
+                UpdatedAt = recipe.UpdatedAt,
+                RecipeCategories = recipe.RecipeCategories.Select(rc => new RecipeCategoryResponse
+                {
+                    CategoryId = rc.CategoryId,
+                    Name = rc.Category.Name
+                }).ToList(),
+                CurrentVersion = recipe.CurrentVersion == null ? null : new RecipeVersionResponse
+                {
+                    VersionId = recipe.CurrentVersion.VersionId,
+                    VersionNumber = recipe.CurrentVersion.VersionNumber,
+                    IsDraft = recipe.CurrentVersion.IsDraft,
+                    IsPublished = recipe.CurrentVersion.IsPublished,
+                    RecipeIngredientGroups = recipe.CurrentVersion.IngredientGroups
+                        .OrderBy(g => g.DisplayOrder)
+                        .Select(g => new RecipeIngredientGroupResponse
+                        {
+                            GroupId = g.GroupId,
+                            Name = g.Name,
+                            DisplayOrder = g.DisplayOrder,
+                            Ingredients = recipe.CurrentVersion.Ingredients
+                                .Where(ri => ri.GroupId == g.GroupId)
+                                .OrderBy(ri => ri.DisplayOrder)
+                                .Select(ri => new RecipeIngredientResponse
+                                {
+                                    RecipeIngredientId = ri.RecipeIngredientId,
+                                    IngredientName = ri.Ingredient?.Name ?? string.Empty,
+                                    Quantity = ri.Quantity,
+                                    UnitName = ri.UnitType?.Name,
+                                    DisplayOrder = ri.DisplayOrder,
+                                    GroupId = ri.GroupId
+                                }).ToList()
+
+                        }).ToList(),
+                    Ingredients = recipe.CurrentVersion.Ingredients
+                        .Where(ri => ri.GroupId == null)
+                        .OrderBy(ri => ri.DisplayOrder)
+                        .Select(ri => new RecipeIngredientResponse
+                        {
+                            RecipeIngredientId = ri.RecipeIngredientId,
+                            IngredientName = ri.Ingredient.Name ?? string.Empty,
+                            Quantity = ri.Quantity,
+                            UnitName = ri.UnitType?.Name,
+                            DisplayOrder = ri.DisplayOrder,
+                            GroupId = ri.GroupId
+                        }).ToList(),
+                    Steps = recipe.CurrentVersion.Steps
+                        .OrderBy(s => s.StepNumber)
+                        .Select(s => new RecipeStepResponse
+                        {
+                            StepId = s.StepId,
+                            StepNumber = s.StepNumber,
+                            Instruction = s.Instruction,
+                            TimerDuration = s.TimerDuration
+                        }).ToList()
+                }
             };
 
-            return Ok(ApiResponse<RecipeResponse>.Ok(response));
+            return Ok(ApiResponse<RecipeDetailResponse>.Ok(response));
         }
 
         [HttpPost]

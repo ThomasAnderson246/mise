@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { getRecipeById, getSubRecipes } from "@/api/recipeApi";
-import { PageHeader } from "@/components/PageHeader";
-import { Button } from "@/components/ui/button";
-import type { RecipeDetail, SubRecipeItem } from "@/api/recipeApi";
+import { useEffect, useState } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { useAuth } from "@/context/AuthContext"
+import { getRecipeById, getSubRecipes } from "@/api/recipeApi"
+import { PageHeader } from "@/components/PageHeader"
+import { Button } from "@/components/ui/button"
+import type { RecipeDetail, SubRecipeItem } from "@/api/recipeApi"
 
 export default function RecipeDetailPage() {
     const { user, hasPermission } = useAuth()
-    const { slug, recipeId } = useParams<{ slug: string, recipeId: string}>()
+    const { slug, recipeId } = useParams<{ slug: string, recipeId: string }>()
     const navigate = useNavigate()
 
     const [recipe, setRecipe] = useState<RecipeDetail | null>(null)
@@ -20,32 +20,31 @@ export default function RecipeDetailPage() {
         if (!user?.token || !recipeId) return
 
         async function loadRecipe() {
-            try{
+            try {
                 const [recipeData, subRecipeData] = await Promise.all([
                     getRecipeById(user!.token, recipeId!),
                     getSubRecipes(user!.token, recipeId!)
                 ])
-                console.log('Recipe data:', recipeData)
                 setRecipe(recipeData)
                 setSubRecipes(subRecipeData)
-            } catch{
+            } catch {
                 setError('Recipe not found.')
             } finally {
                 setLoading(false)
             }
         }
         loadRecipe()
-    },[user, recipeId])
+    }, [user, recipeId])
 
-    if (loading){
-        return(
+    if (loading) {
+        return (
             <div className="flex items-center justify-center py-16">
                 <p className="text-muted-foreground">Loading recipe...</p>
             </div>
         )
     }
 
-    if (error || !recipe){
+    if (error || !recipe) {
         return (
             <div className="flex items-center justify-center py-16">
                 <p className="text-muted-foreground">{error ?? 'Recipe not found.'}</p>
@@ -53,13 +52,14 @@ export default function RecipeDetailPage() {
         )
     }
 
-    const version = recipe?.currentVersion
+    const version = recipe.currentVersion
+ 
 
-    return(
+    return (
         <div className="max-w-3xl">
             <PageHeader
                 title={recipe.title}
-                subtitle={recipe?.description ?? undefined}
+                subtitle={recipe.description ?? undefined}
                 action={
                     <div className="flex gap-2">
                         {hasPermission('recipe', 'update') && (
@@ -82,17 +82,18 @@ export default function RecipeDetailPage() {
                 }
             />
 
-            <div className="flex items-center gap-3 mb-8">
+            {/* Status and meta */}
+            <div className="flex items-center gap-3 mb-8 flex-wrap">
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                    recipe?.status === 'published'
+                    recipe.status === 'published'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-yellow-100 text-yellow-800'
                 }`}>
-                {recipe.status}
+                    {recipe.status}
                 </span>
-                {recipe?.recipeCategories?.map(rc => (
-                    <span key={rc.category.categoryId} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        {rc.category.name}
+                {recipe.recipeCategories?.map(rc => (
+                    <span key={rc.categoryId} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        {rc.name}
                     </span>
                 ))}
                 <span className="text-xs text-muted-foreground ml-auto">
@@ -104,51 +105,82 @@ export default function RecipeDetailPage() {
                 <div className="bg-card rounded-lg p-6 border border-border text-center">
                     <p className="text-muted-foreground text-sm">This recipe has no version yet.</p>
                 </div>
-            ): (
+            ) : (
                 <div className="space-y-8">
+                    {/* Ingredients */}
                     <section>
-                        <h2 className="text-lg font-semibold text-foreround mb-4 pb-2 border-b border-border">
+                        <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
                             Ingredients
                         </h2>
-                        {version.ingredients?.length === 0 ? (
+
+                        {version.recipeIngredientGroups.length === 0 && version.ingredients.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No ingredients added yet.</p>
-                        ): (
-                            <ul className="space-y-2">
-                                {version.ingredients?.map(ing => (
-                                    <li key={ing.recipeIngredientId} className="flex items-center gap-3 text-sm">
-                                        <span className="w-20 text-right font-medium text-foreground flex-shrink=0">
-                                            {ing.quantity} {ing.unitName ?? ''}
-                                        </span>
-                                        <span className="text-foreground">{ing.ingredientName}</span>
-                                        {ing.notes && (
-                                            <span className="text-muted-foreground italic">- {ing.notes}</span>
-                                        )}
-                                    </li>
+                        ) : (
+                            <div className="space-y-6">
+                                {/* Grouped ingredients */}
+                                {version.recipeIngredientGroups.map(group => (
+                                    <div key={group.groupId}>
+                                        <h3 className="text-sm font-medium text-secondary mb-2 uppercase tracking-wide">
+                                            {group.name}
+                                        </h3>
+                                        <ul className="space-y-2">
+                                            {group.ingredients.map(ing => (
+                                                <li key={ing.recipeIngredientId} className="flex items-center gap-3 text-sm">
+                                                    <span className="w-24 text-right font-medium text-foreground flex-shrink-0">
+                                                        {ing.quantity} {ing.unitName ?? ''}
+                                                    </span>
+                                                    <span className="text-foreground">{ing.ingredientName}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 ))}
-                            </ul>
+
+                                {/* Ungrouped ingredients */}
+                                {version.ingredients.length > 0 && (
+                                    <ul className="space-y-2">
+                                        {version.ingredients.map(ing => (
+                                            <li key={ing.recipeIngredientId} className="flex items-center gap-3 text-sm">
+                                                <span className="w-24 text-right font-medium text-foreground flex-shrink-0">
+                                                    {ing.quantity} {ing.unitName ?? ''}
+                                                </span>
+                                                <span className="text-foreground">{ing.ingredientName}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                         )}
                     </section>
 
+                    {/* Steps */}
                     <section>
                         <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
                             Method
                         </h2>
-                        {version.steps?.length === 0 ? (
+                        {version.steps.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No steps added yet.</p>
-                        ):(
+                        ) : (
                             <ol className="space-y-4">
-                                {version.steps?.map(step => (
+                                {version.steps.map(step => (
                                     <li key={step.stepId} className="flex gap-4">
-                                        <span className="2-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                                             {step.stepNumber}
                                         </span>
                                         <div className="flex-1">
                                             <p className="text-sm text-foreground">{step.instruction}</p>
-                                            {step.durationMinutes && (
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    {step.durationMinutes} min
-                                                </p>
-                                            )}
+                                            <div className="flex items-center gap-3 mt-1">
+                                                {step.hasTimer && step.timerDuration && (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        ⏱ {step.timerDuration} min
+                                                    </span>
+                                                )}
+                                                {step.isAsync && (
+                                                    <span className="text-xs text-secondary">
+                                                        ↕ Async
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </li>
                                 ))}
@@ -156,6 +188,7 @@ export default function RecipeDetailPage() {
                         )}
                     </section>
 
+                    {/* Sub-recipes */}
                     {subRecipes.length > 0 && (
                         <section>
                             <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
@@ -181,7 +214,7 @@ export default function RecipeDetailPage() {
                                 ))}
                             </ul>
                         </section>
-                    )} 
+                    )}
                 </div>
             )}
         </div>
