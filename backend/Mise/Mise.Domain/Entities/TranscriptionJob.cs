@@ -11,11 +11,11 @@ namespace Mise.Domain.Entities
         public Guid JobId { get; set; }
         public Guid TenantId { get; set; }
         public Guid? UploadedBy { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
+        public string? ImageUrl { get; set; } 
         public string Status { get; set; } = "pending";
         public Guid? GeneratedRecipeId { get; set; }
         public string? ErrorMessage { get; set; }
-        public DateTime CreatedAt = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt {  get; set; }
 
         // navigation

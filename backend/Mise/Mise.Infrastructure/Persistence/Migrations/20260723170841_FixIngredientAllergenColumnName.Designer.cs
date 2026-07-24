@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mise.Infrastructure.Persistence.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mise.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiseDbContext))]
-    partial class MiseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260723170841_FixIngredientAllergenColumnName")]
+    partial class FixIngredientAllergenColumnName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1252,6 +1255,7 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("generated_recipe_id");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("image_url");
 

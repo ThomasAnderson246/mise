@@ -29,8 +29,8 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("uploaded_by");
 
             builder.Property(tj => tj.ImageUrl)
-                .HasColumnName("image_url")
-                .IsRequired();
+                .HasColumnName("image_url");
+                
 
             builder.Property(tj => tj.Status)
                 .HasColumnName("status")

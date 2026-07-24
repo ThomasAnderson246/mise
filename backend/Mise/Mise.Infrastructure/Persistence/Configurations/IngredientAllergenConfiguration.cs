@@ -21,7 +21,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("ingredient_id");
 
             builder.Property(ia => ia.AllergenId)
-                .HasColumnName("alleren_id");
+                .HasColumnName("allergen_id");
 
             builder.HasOne(ia => ia.Ingredient)
                 .WithMany(i => i.IngredientAllergens)

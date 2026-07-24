@@ -81,9 +81,10 @@ namespace Mise.Infrastructure.Services
                 "ingredient",
                 ingredient.IngredientId,
                 null,
-                ingredient.Name);
+                JsonSerializer.Serialize(new { ingredient.Name, ingredient.Category }));
 
-            return ingredient;
+            return await _ingredientRepository.GetByIdAndTenantAsync(ingredient.IngredientId, tenantId)
+                    ?? ingredient; ;
         }
 
         public async Task<Ingredient> UpdateAsync(
@@ -142,9 +143,10 @@ namespace Mise.Infrastructure.Services
                 "ingredient",
                 ingredient.IngredientId,
                 previousState,
-                ingredient.Name);
+                JsonSerializer.Serialize(new { ingredient.Name, ingredient.Category }));
 
-            return ingredient;
+            return await _ingredientRepository.GetByIdAndTenantAsync(ingredient.IngredientId,ingredient.TenantId)
+                ?? ingredient;
 
         }
 

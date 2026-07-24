@@ -4,6 +4,7 @@ using Mise.API.Middleware;
 using Mise.Infrastructure.Persistence.Context;
 using Microsoft.OpenApi.Models;
 using Mise.Infrastructure.Persistence;
+using Anthropic.SDK;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -59,6 +60,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddSingleton(new AnthropicClient(
+    builder.Configuration["Anthropic:ApiKey"] ??
+    throw new InvalidOperationException("Anthropic API key not configured.")));
 builder.Services.AddRepositories();
 builder.Services.AddApplicationServices();
 builder.Services.AddJwtAuthentication(builder.Configuration);
