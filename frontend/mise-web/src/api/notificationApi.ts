@@ -1,6 +1,5 @@
 import axios from "axios";
-
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5282'
+import { BASE_URL } from "./config";
 
 export interface NotificationItem{
     notificationId: string

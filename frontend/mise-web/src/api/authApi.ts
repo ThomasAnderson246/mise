@@ -1,6 +1,6 @@
 import axios from 'axios'
+import { BASE_URL } from './config'
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "https://localhost:7144"
 
 export interface LoginRequest {
     email: string

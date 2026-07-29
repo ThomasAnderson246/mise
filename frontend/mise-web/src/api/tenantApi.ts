@@ -1,6 +1,5 @@
 import axios from 'axios'
-
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'https://localhost:7144'
+import { BASE_URL } from './config'
 
 export interface TenantResponse {
     tenantId: string

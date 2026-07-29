@@ -1,6 +1,19 @@
 import axios from "axios";
+import { BASE_URL } from "./config";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5282'
+export interface CreateRecipeRequest{
+    title: string
+    description: string | null
+    scalingMode: string
+    categoryIds: string[]
+}
+
+export interface UpdateRecipeRequest {
+    title?: string
+    description?: string | null
+    scalingMode?: string
+    categoryIds?: string[]
+}
 
 export interface RecipeIngredientGroup {
     groupId: string
@@ -96,4 +109,71 @@ export async function getSubRecipes(token: string, recipeId: string): Promise<Su
         headers: {Authorization: `Bearer ${token}`}
     })
     return response.data.data
+}
+
+export async function createRecipe(token: string, request: CreateRecipeRequest): Promise<RecipeDetail>{
+    const response = await axios.post(`${BASE_URL}/api/recipe`, request, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+    return response.data.data
+}
+
+export async function updateRecipe(token: string, recipeId: string, request: UpdateRecipeRequest): Promise<RecipeDetail>{
+    const response = await axios.put(`${BASE_URL}/api/recipe/${recipeId}`, request, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+
+    return response.data.data
+}
+
+export async function addIngredient(token: string, recipeId: string, request:{
+    ingredientId: string
+    quantity: number
+    unitTypeId: string | null
+    displayOrder: number
+    groupId: string | null
+    isNonConvertible: boolean
+    isRatioAnchor: boolean
+}) : Promise<void> {
+    await axios.post(`${BASE_URL}/api/reipe/${recipeId}/ingredients`, request, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function removeIngredient(token: string, recipeId: string, recipeIngredientId: string): Promise<void>{
+    await axios.delete(`${BASE_URL}/api/recipe/${recipeId}/ingredients/${recipeIngredientId}`,{
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function addStep(token: string, recipeId: string, request:{
+    stepNumber: number
+    instruction: string
+    hasTimer: boolean
+    timerDuration: number | null
+    isAsync: boolean
+    asyncGroupId: string | null
+}) : Promise<void> {
+    await axios.post(`${BASE_URL}/api/recipe/${recipeId}/steps`, request, {
+        withCredentials:true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function removeStep(token: string, recipeId: string, stepId: string): Promise<void>{
+    await axios.delete(`${BASE_URL}/api/recipe/${recipeId}/steps/${stepId}`, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function publishRecipe(token: string, recipeId:string):Promise<void>{
+    await axios.post(`${BASE_URL}/api/recipe/${recipeId}/publish`, {},{
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
 }
