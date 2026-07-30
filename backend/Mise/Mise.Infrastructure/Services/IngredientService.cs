@@ -45,7 +45,11 @@ namespace Mise.Infrastructure.Services
             CreateIngredientRequest request,
             Guid tenantId, 
             Guid createdBy)
+
         {
+            var nameExists = await _ingredientRepository.NameExistsInTenantAsync(tenantId, request.Name);
+            if (nameExists)
+                throw new InvalidOperationException($"An ingredient with name {request.Name} already exists.");
             var ingredient = new Ingredient
             {
                 IngredientId = Guid.NewGuid(),

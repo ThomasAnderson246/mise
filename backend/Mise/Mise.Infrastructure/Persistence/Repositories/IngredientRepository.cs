@@ -42,6 +42,12 @@ namespace Mise.Infrastructure.Persistence.Repositories
                 .AnyAsync(i => i.IngredientId == id && i.TenantId == tenantId);
         }
 
+        public async Task<bool> NameExistsInTenantAsync(Guid tenantId, string name)
+        {
+            return await _context.Ingredients
+                .AnyAsync(i => i.TenantId == tenantId && i.Name.ToLower() == name.ToLower());
+        }
+
         public async Task<IEnumerable<Ingredient>> SearchByNameAsync(Guid tenantId, string searchTerm)
         {
             return await _context.Ingredients

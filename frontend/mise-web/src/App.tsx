@@ -6,6 +6,7 @@ import { Layout } from './components/Layout'
 import DashBoardPage from './pages/DashboardPage'
 import RecipesPage from './pages/RecipesPage'
 import RecipeDetailPage from './pages/RecipeDetailPage'
+import RecipeEditorPage from './pages/RecipeEditorPage'
 
 function SlugRoutes() {
   const { slug } = useParams<{ slug: string}>()
@@ -14,9 +15,11 @@ function SlugRoutes() {
     <ProtectedRoute slug={slug!}>
       <Routes>
         <Route element={<Layout/>}>
-          <Route path="dashboard" element={<DashBoardPage/>}/>
-          <Route path="recipes" element={<RecipesPage/>}/>
-          <Route path="recipes/:recipeId" element={<RecipeDetailPage/>} />
+          <Route path="dashboard" element={<DashBoardPage />} />
+          <Route path="recipes/new" element={<RecipeEditorPage />} />
+          <Route path="recipes/:recipeId/edit" element={<RecipeEditorPage />} />
+          <Route path="recipes/:recipeId" element={<RecipeDetailPage />} />
+          <Route path="recipes" element={<RecipesPage />} />
         </Route>
       </Routes>
     </ProtectedRoute>

@@ -137,7 +137,7 @@ export async function addIngredient(token: string, recipeId: string, request:{
     isNonConvertible: boolean
     isRatioAnchor: boolean
 }) : Promise<void> {
-    await axios.post(`${BASE_URL}/api/reipe/${recipeId}/ingredients`, request, {
+    await axios.post(`${BASE_URL}/api/recipe/${recipeId}/ingredients`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}
     })
