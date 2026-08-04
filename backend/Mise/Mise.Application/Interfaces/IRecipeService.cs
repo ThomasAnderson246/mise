@@ -24,6 +24,12 @@ namespace Mise.Application.Interfaces
         Task<Recipe> RemoveStepAsync(Guid recipeId, Guid stepId, Guid tenantId, Guid performedBy);
         Task<Recipe> AddIngredientGroupAsync(Guid recipeId, AddRecipeIngredientGroupRequest request, Guid tenantId, Guid performedBy);
         Task<Recipe> RemoveIngredientGroupAsync(Guid recipeId, Guid groupId, Guid tenantId, Guid performedBy);
+        Task<RecipeVersion?> GetDraftVersionAsync(Guid recipeId, Guid tenantId);
+        Task<RecipeVersion> CreateDraftFromCurrentAsync(Guid recipeId, Guid tenantId, Guid createdBy);
+        Task<Recipe> SaveDraftAsync(Guid recipeId, Guid versionId, SaveDraftRequest request, Guid tenantId, Guid performedBy);
+        Task<Recipe> RestoreVersionAsync(Guid recipeId, Guid versionId, Guid tenantId, Guid performedBy);
+        Task DiscardDraftAsync(Guid recipeId, Guid tenantId, Guid performedBy);
+        Task<IEnumerable<RecipeVersion>> GetVersionHistoryAsync(Guid recipeId, Guid tenantId);
 
     }
 }

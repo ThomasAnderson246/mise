@@ -213,55 +213,59 @@ namespace Mise.Infrastructure.Services
             var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
                 ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
 
-            if (recipe.CurrentVersionId == null)
-                throw new InvalidOperationException("Recipe has no version to publish.");
+            // find draft version if it exists, otherwise use the current version
+            var draft = await _context.RecipeVersions
+                .FirstOrDefaultAsync(rv => rv.RecipeId == recipeId && rv.IsDraft);
 
-            var version = await _context.RecipeVersions
+            var versionToPublish = draft ?? await _context.RecipeVersions
                 .FirstOrDefaultAsync(rv => rv.VersionId == recipe.CurrentVersionId)
                 ?? throw new KeyNotFoundException("Recipe version not found.");
 
-            version.IsDraft = false;
-            version.IsPublished = true;
-            version.PublishedBy = publishedBy;
-            version.PublishedAt = DateTime.UtcNow;
-
-            var wasAlreadyPublished = recipe.Status == "published";
-
-            recipe.Status = "published";
-            recipe.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            if (wasAlreadyPublished)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                await _notificationService.NotifyRecipeUpdatedAsync(
-                    recipeId, recipe.Title, tenantId, publishedBy);
-            }
-            else
-            {
-                await _notificationService.NotifyRecipePublishedAsync(
-                    recipeId,
-                    recipe.Title,
-                    tenantId,
-                    publishedBy);
-            }
+                versionToPublish.IsDraft = false;
+                versionToPublish.IsPublished = true;
+                versionToPublish.PublishedBy = publishedBy;
+                versionToPublish.PublishedAt = DateTime.UtcNow;
 
-            
+                var wasAlreadyPublished = recipe.Status == "published";
+                recipe.Status = "published";
+                recipe.CurrentVersionId = versionToPublish.VersionId;
+                recipe.UpdatedAt = DateTime.UtcNow;
 
-            await _auditLogServices.LogAsync(
-                tenantId,
-                publishedBy,
-                "publish",
-                "recipe",
-                recipeId,
-                null,
-                JsonSerializer.Serialize(new
+                await _context.SaveChangesAsync();
+
+                if (wasAlreadyPublished)
                 {
-                    recipe.Title,
-                    recipe.Description
-                }));
+                    await _notificationService.NotifyRecipeUpdatedAsync(recipeId, recipe.Title, tenantId, publishedBy);
+                }
+                else
+                {
+                    await _notificationService.NotifyRecipePublishedAsync(recipeId, recipe.Title, tenantId, publishedBy);
+                }
 
-            return recipe;
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    publishedBy,
+                    "publish",
+                    "recipe",
+                    recipeId,
+                    null,
+                    JsonSerializer.Serialize(new
+                    {
+                        recipe.Title,
+                        VersionId = versionToPublish.VersionId,
+                        VersionNumber = versionToPublish.VersionNumber,
+                    }));
+                await transaction.CommitAsync();
+                return recipe;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<Recipe> AddIngredientAsync(
@@ -570,6 +574,348 @@ namespace Mise.Infrastructure.Services
                 null);
 
             return recipe;
+        }
+
+        public async Task<RecipeVersion?> GetDraftVersionAsync(Guid recipeId, Guid tenantId)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId);
+            if (recipe == null) return null;
+
+            return await _context.RecipeVersions
+                .Include(rv => rv.Steps)
+                .Include(rv => rv.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                .Include(rv => rv.Ingredients)
+                    .ThenInclude(ri => ri.UnitType)
+                .Include(rv => rv.IngredientGroups)
+                .FirstOrDefaultAsync(rv => rv.RecipeId == recipeId && rv.IsDraft);
+        }
+
+        public async Task<RecipeVersion> CreateDraftFromCurrentAsync(
+            Guid recipeId, 
+            Guid tenantId,
+            Guid createdBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+            var existingDraft = await _context.RecipeVersions
+                .FirstOrDefaultAsync(rv => rv.RecipeId == recipeId && rv.IsDraft);
+
+            if (existingDraft != null)
+                throw new InvalidOperationException("A draft version already exists for this recipe.");
+
+            var currentVersion = await _context.RecipeVersions
+                .Include(rv => rv.Steps)
+                .Include(rv => rv.Ingredients)
+                .Include(rv => rv.IngredientGroups)
+                .FirstOrDefaultAsync(rv => rv.VersionId == recipe.CurrentVersionId)
+                ?? throw new KeyNotFoundException("Current version not found.");
+
+            var nextVersionNumber = await _context.RecipeVersions
+                .Where(rv => rv.RecipeId == recipeId)
+                .MaxAsync(rv => rv.VersionNumber) + 1;
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var draft = new RecipeVersion
+                {
+                    VersionId = Guid.NewGuid(),
+                    RecipeId = recipeId,
+                    VersionNumber = nextVersionNumber,
+                    IsDraft = true,
+                    IsPublished = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _context.RecipeVersions.AddAsync(draft);
+                await _context.SaveChangesAsync();
+
+                var groupIdMap = new Dictionary<Guid, Guid>();
+                foreach (var group in currentVersion.IngredientGroups)
+                {
+                    var newGroupId = Guid.NewGuid();
+                    groupIdMap[group.GroupId] = newGroupId;
+                    await _context.RecipeIngredientGroups.AddAsync(new RecipeIngredientGroup
+                    {
+                        GroupId = newGroupId,
+                        VersionId = draft.VersionId,
+                        Name = group.Name,
+                        DisplayOrder = group.DisplayOrder
+                    });
+                }
+
+                foreach (var ingredient in currentVersion.Ingredients)
+                {
+                    await _context.RecipeIngredients.AddAsync(new RecipeIngredient
+                    {
+                        RecipeIngredientId = Guid.NewGuid(),
+                        VersionId = draft.VersionId,
+                        IngredientId = ingredient.IngredientId,
+                        Quantity = ingredient.Quantity,
+                        UnitTypeId = ingredient.UnitTypeId,
+                        DisplayOrder = ingredient.DisplayOrder,
+                        GroupId = ingredient.GroupId.HasValue && groupIdMap.ContainsKey(ingredient.GroupId.Value)
+                            ? groupIdMap[ingredient.GroupId.Value]
+                            : null,
+                        IsNonConvertible = ingredient.IsNonConvertible,
+                        IsRatioAnchor = ingredient.IsRatioAnchor
+                    });
+                }
+
+                foreach (var step in currentVersion.Steps)
+                {
+                    await _context.RecipeSteps.AddAsync(new RecipeStep
+                    {
+                        StepId = Guid.NewGuid(),
+                        VersionId = draft.VersionId,
+                        StepNumber = step.StepNumber,
+                        Instruction = step.Instruction,
+                        HasTimer = step.HasTimer,
+                        TimerDuration = step.TimerDuration,
+                        IsAsync = step.IsAsync,
+                        AsyncGroupId = step.AsyncGroupId,
+                        CreatedAt = step.CreatedAt
+                    });
+                        
+
+                }
+
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    createdBy,
+                    "create_draft",
+                    "recipe",
+                    recipeId,
+                    null,
+                    JsonSerializer.Serialize(new { VersionNumber = nextVersionNumber }));
+
+                await transaction.CommitAsync();
+                return draft;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<Recipe> SaveDraftAsync(
+            Guid recipeId,
+            Guid versionId,
+            SaveDraftRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var version = await _context.RecipeVersions
+                .Include(rv => rv.Steps)
+                .Include(rv => rv.Ingredients)
+                .Include(rv => rv.IngredientGroups)
+                .FirstOrDefaultAsync(rv => rv.VersionId == versionId && rv.RecipeId == recipeId)
+                ?? throw new KeyNotFoundException("Draft version not found.");
+
+            if (!version.IsDraft)
+                throw new InvalidOperationException("Cannot save to a published version.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.RecipeIngredientGroups.RemoveRange(version.IngredientGroups);
+                await _context.SaveChangesAsync();
+
+                var groupIdMap = new Dictionary<Guid, Guid>();
+                foreach (var group in request.IngredientGroups)
+                {
+                    var newGroupId = group.GroupId ?? Guid.NewGuid();
+                    if (group.GroupId.HasValue) groupIdMap[group.GroupId.Value] = newGroupId;
+
+                    await _context.RecipeIngredientGroups.AddAsync(new RecipeIngredientGroup
+                    {
+                        GroupId = newGroupId,
+                        VersionId = versionId,
+                        Name = group.Name,
+                        DisplayOrder = group.DisplayOrder
+                    });
+                }
+
+                _context.RecipeIngredients.RemoveRange(version.Ingredients);
+                await _context.SaveChangesAsync();
+
+                foreach (var ing in request.Ingredients)
+                {
+                    await _context.RecipeIngredients.AddAsync(new RecipeIngredient
+                    {
+                        RecipeIngredientId = ing.RecipeIngredientId ?? Guid.NewGuid(),
+                        VersionId = versionId,
+                        IngredientId = ing.IngredientId,
+                        Quantity = ing.Quantity,
+                        UnitTypeId = ing.UnitTypeId,
+                        DisplayOrder = ing.DisplayOrder,
+                        GroupId = ing.GroupId.HasValue && groupIdMap.ContainsKey(ing.GroupId.Value)
+                            ? groupIdMap[ing.GroupId.Value]
+                            : ing.GroupId,
+                        IsNonConvertible = ing.IsNonConvertible,
+                        IsRatioAnchor = ing.IsRatioAnchor
+                    });
+                }
+
+                _context.RecipeSteps.RemoveRange(version.Steps);
+                await _context.SaveChangesAsync();
+
+                foreach (var step in request.Steps)
+                {
+                    await _context.RecipeSteps.AddAsync(new RecipeStep
+                    {
+                        StepId = step.StepId ?? Guid.NewGuid(),
+                        VersionId = versionId,
+                        StepNumber = step.StepNumber,
+                        Instruction = step.Instruction,
+                        HasTimer = step.HasTimer,
+                        TimerDuration = step.TimerDuration,
+                        IsAsync = step.IsAsync,
+                        AsyncGroupId = step.AsyncGroupId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                }
+
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "save_draft",
+                    "recipe",
+                    recipeId,
+                    null,
+                    JsonSerializer.Serialize(new { versionId }));
+
+                await transaction.CommitAsync();
+                return recipe;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<Recipe> RestoreVersionAsync(
+            Guid recipeId,
+            Guid versionId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
+
+            var version = await _context.RecipeVersions
+                .FirstOrDefaultAsync(rv => rv.VersionId == versionId && rv.RecipeId == recipeId)
+                ?? throw new KeyNotFoundException("version not found.");
+
+            if (version.IsDraft)
+                throw new InvalidOperationException("Cannot restore a draft version.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingDraft = await _context.RecipeVersions
+                    .Include(rv => rv.Steps)
+                    .Include(rv => rv.Ingredients)
+                    .Include(rv => rv.IngredientGroups)
+                    .FirstOrDefaultAsync(rv => rv.RecipeId == recipeId && rv.IsDraft);
+
+                if (existingDraft != null)
+                {
+                    _context.RecipeSteps.RemoveRange(existingDraft.Steps);
+                    _context.RecipeIngredients.RemoveRange(existingDraft.Ingredients);
+                    _context.RecipeIngredientGroups.RemoveRange(existingDraft.IngredientGroups);
+                    _context.RecipeVersions.Remove(existingDraft);
+                    await _context.SaveChangesAsync();
+                }
+
+                var previousVersionId = recipe.CurrentVersionId;
+                recipe.CurrentVersionId = versionId;
+                recipe.UpdatedAt = DateTime.UtcNow;
+                await _recipeRepository.UpdateAsync(recipe);
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "restore_version",
+                    "recipe",
+                    recipeId,
+                    JsonSerializer.Serialize(new { VersionId = previousVersionId }),
+                    JsonSerializer.Serialize(new { VersionId = versionId }));
+
+                await transaction.CommitAsync();
+                return recipe;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task DiscardDraftAsync(
+            Guid recipeId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
+                ?? throw new KeyNotFoundException($"REcipe {recipeId} not found.");
+
+            var draft = await _context.RecipeVersions
+                .Include(rv => rv.Steps)
+                .Include(rv => rv.Ingredients)
+                .Include(rv => rv.IngredientGroups)
+                .FirstOrDefaultAsync(rv => rv.RecipeId == recipeId && rv.IsDraft)
+                ?? throw new KeyNotFoundException("No draft version found.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.RecipeSteps.RemoveRange(draft.Steps);
+                _context.RecipeIngredients.RemoveRange(draft.Ingredients);
+                _context.RecipeIngredientGroups.RemoveRange(draft.IngredientGroups);
+                _context.RecipeVersions.Remove(draft);
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "discard_draft",
+                    "recipe",
+                    recipeId,
+                    null,
+                    null);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<RecipeVersion>> GetVersionHistoryAsync(
+            Guid recipeId,
+            Guid tenantId)
+        {
+            var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId);
+            if (recipe == null) return Enumerable.Empty<RecipeVersion>();
+
+            return await _context.RecipeVersions
+                .Where(rv => rv.RecipeId == recipeId && rv.IsPublished)
+                .Include(rv => rv.PublishedByUser)
+                .OrderByDescending(rv => rv.VersionNumber)
+                .ToListAsync();
         }
     
     

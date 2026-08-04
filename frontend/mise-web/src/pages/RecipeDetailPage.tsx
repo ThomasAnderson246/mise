@@ -74,6 +74,16 @@ export default function RecipeDetailPage() {
   }
 
   const version = recipe.currentVersion;
+  {
+    console.log(
+      "Steps:",
+      version?.steps.map((s) => ({
+        stepNumber: s.stepNumber,
+        hasTimer: s.hasTimer,
+        timerDuration: s.timerDuration,
+      })),
+    );
+  }
 
   return (
     <div className="max-w-3xl">
@@ -207,14 +217,7 @@ export default function RecipeDetailPage() {
               </div>
             )}
           </section>
-          {console.log(
-            "Steps:",
-            version.steps.map((s) => ({
-              stepNumber: s.stepNumber,
-              hasTimer: s.hasTimer,
-              timerDuration: s.timerDuration,
-            })),
-          )}
+
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
               Method

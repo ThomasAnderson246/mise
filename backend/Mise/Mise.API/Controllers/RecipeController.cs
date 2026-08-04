@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Mise.API;
 using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
+using Mise.Domain.Entities;
 
 namespace Mise.API.Controllers
 {
@@ -119,7 +121,10 @@ namespace Mise.API.Controllers
                             StepId = s.StepId,
                             StepNumber = s.StepNumber,
                             Instruction = s.Instruction,
-                            TimerDuration = s.TimerDuration
+                            HasTimer = s.HasTimer,
+                            TimerDuration = s.TimerDuration,
+                            IsAsync = s.IsAsync,
+                            AsyncGroupId = s.AsyncGroupId
                         }).ToList()
                 }
             };
@@ -283,7 +288,7 @@ namespace Mise.API.Controllers
             {
                 return NotFound(ApiResponse<string>.Fail(ex.Message));
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ApiResponse<string>.Fail(ex.Message));
             }
@@ -327,7 +332,7 @@ namespace Mise.API.Controllers
             {
                 await _recipeService.AddStepAsync(id, request, _currentUser.TenantId, _currentUser.UserId);
                 return Ok(ApiResponse<string>.Ok("Step added.", "Step added to recipe."));
-            } 
+            }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ApiResponse<string>.Fail(ex.Message));
@@ -402,5 +407,177 @@ namespace Mise.API.Controllers
                 return NotFound(ApiResponse<string>.Fail(ex.Message));
             }
         }
+
+        [HttpGet("{id}/draft")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> GetDraft(Guid id)
+        {
+            var draft = await _recipeService.GetDraftVersionAsync(id, _currentUser.TenantId);
+            if (draft == null)
+                return NotFound(ApiResponse<RecipeVersionSummaryResponse>.Fail("No draft found."));
+
+            return Ok(ApiResponse<RecipeDetailResponse>.Ok(MapVersionToResponse(draft)));
+        }
+
+        [HttpPost("{id}/draft")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> CreateDraft(Guid id)
+        {
+            try
+            {
+                var draft = await _recipeService.CreateDraftFromCurrentAsync(
+                    id, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<RecipeVersionSummaryResponse>.Ok(
+                    MapVersionSummaryToResponse(draft, null), "Draft Created."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPut("{id}/draft/{versionId}")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> SaveDraft(Guid id, Guid versionId, [FromBody] SaveDraftRequest request)
+        {
+            try
+            {
+                await _recipeService.SaveDraftAsync(id, versionId, request, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Draft saved.", "Draft saved successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpPost("{id}/versions/{versionId}/restore")]
+        [RequiresPermission("recipe", "publish")]
+        public async Task<IActionResult> RestoreVersion(Guid id, Guid versionId)
+        {
+            try
+            {
+                await _recipeService.RestoreVersionAsync(id, versionId, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Version restored.", "Version restored successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpDelete("{id}/draft")]
+        [RequiresPermission("recipe", "update")]
+        public async Task<IActionResult> DiscardDraft(Guid id)
+        {
+            try
+            {
+                await _recipeService.DiscardDraftAsync(id, _currentUser.TenantId, _currentUser.UserId);
+                return Ok(ApiResponse<string>.Ok("Draft discarded.", "Draft discarded successfully."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<string>.Fail(ex.Message));
+            }
+        }
+
+        [HttpGet("{id}/versions")]
+        [RequiresPermission("recipe", "read")]
+        public async Task<IActionResult> GetVersionHistory(Guid id)
+        {
+            var recipe = await _recipeService.GetByIdAsync(id, _currentUser.TenantId);
+            if (recipe == null)
+                return NotFound(ApiResponse<string>.Fail("Recipe not found."));
+
+            var versions = await _recipeService.GetVersionHistoryAsync(id, _currentUser.TenantId);
+
+            var response = versions.Select(v => MapVersionSummaryToResponse(v, recipe.CurrentVersionId));
+            return Ok(ApiResponse<IEnumerable<RecipeVersionSummaryResponse>>.Ok(response));
+        }
+
+        private static RecipeVersionSummaryResponse MapVersionSummaryToResponse(
+            RecipeVersion v, Guid? currentVersionId) => new()
+            {
+                VersionId = v.VersionId,
+                VersionNumber = v.VersionNumber,
+                IsDraft = v.IsDraft,
+                IsPublished = v.IsPublished,
+                IsCurrent = currentVersionId.HasValue && v.VersionId == currentVersionId.Value,
+                CreatedAt = v.CreatedAt,
+                PublishedAt = v.PublishedAt,
+                PublishedByName = v.PublishedByUser != null
+                    ? $"{v.PublishedByUser.FirstName} {v.PublishedByUser.LastName}"
+                    : null
+            };
+        
+        private static RecipeDetailResponse MapVersionToResponse(RecipeVersion v) => new()
+        {
+            RecipeId = v.RecipeId,
+            Title = v.Recipe?.Title ?? string.Empty,
+            Status = v.IsDraft ? "draft" : "published",
+            CurrentVersion = new RecipeVersionResponse
+            {
+                VersionId = v.VersionId,
+                VersionNumber = v.VersionNumber,
+                IsDraft = v.IsDraft,
+                IsPublished = v.IsPublished,
+                Ingredients = v.Ingredients
+                    .Where(ri => ri.GroupId == null)
+                    .OrderBy(ri => ri.DisplayOrder)
+                    .Select(ri => new RecipeIngredientResponse
+                    {
+                        RecipeIngredientId = ri.RecipeIngredientId,
+                        IngredientName = ri.Ingredient?.Name ?? string.Empty,
+                        Quantity = ri.Quantity,
+                        UnitName = ri.UnitType?.Name,
+                        DisplayOrder = ri.DisplayOrder,
+                        GroupId = ri.GroupId
+                    }).ToList(),
+                Steps = v.Steps
+                    .OrderBy(s => s.StepNumber)
+                    .Select(s => new RecipeStepResponse
+                    {
+                        StepId = s.StepId,
+                        StepNumber = s.StepNumber,
+                        Instruction = s.Instruction,
+                        HasTimer = s.HasTimer,
+                        TimerDuration = s.TimerDuration,
+                        IsAsync = s.IsAsync,
+                        AsyncGroupId = s.AsyncGroupId
+                    }).ToList(),
+                RecipeIngredientGroups = v.IngredientGroups
+                    .OrderBy(g => g.DisplayOrder)
+                    .Select(g => new RecipeIngredientGroupResponse
+                    {
+                        GroupId = g.GroupId,
+                        Name = g.Name,
+                        DisplayOrder = g.DisplayOrder,
+                        Ingredients = v.Ingredients
+                            .Where(ri => ri.GroupId == g.GroupId)
+                            .OrderBy(ri => ri.DisplayOrder)
+                            .Select(ri => new RecipeIngredientResponse
+                            {
+                                RecipeIngredientId = ri.RecipeIngredientId,
+                                IngredientName = ri.Ingredient?.Name ?? string.Empty,
+                                Quantity = ri.Quantity,
+                                UnitName = ri.UnitType?.Name,
+                                DisplayOrder = ri.DisplayOrder,
+                                GroupId = ri.GroupId
+                            }).ToList()
+                    }).ToList()
+            }
+        };
     }
 }

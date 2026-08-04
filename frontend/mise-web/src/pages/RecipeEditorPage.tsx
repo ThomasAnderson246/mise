@@ -90,15 +90,11 @@ export default function RecipeEditorPage() {
         if (isEditMode && recipeId) {
           const recipeData = await getRecipeById(user!.token, recipeId);
           setRecipe(recipeData);
+          console.log("Steps raw:", recipeData.currentVersion?.steps);
           setTitle(recipeData.title);
           setDescription(recipeData.description ?? "");
           setScalingMode(recipeData.scalingMode);
           setSelectedCategories(
-            recipeData.recipeCategories.map((rc) => rc.categoryId),
-          );
-          console.log("Recipe categories:", recipeData.recipeCategories);
-          console.log(
-            "Selected categories after load:",
             recipeData.recipeCategories.map((rc) => rc.categoryId),
           );
         }
@@ -261,6 +257,12 @@ export default function RecipeEditorPage() {
   async function handleAddStep() {
     if (!user?.token || !currentRecipeId || !stepInstruction.trim()) return;
     setSaving(true);
+    console.log(
+      "Adding step with hasTimer:",
+      stepHasTimer,
+      "timerDuration:",
+      stepTimerDuration,
+    );
 
     try {
       const stepCount = (recipe?.currentVersion?.steps.length ?? 0) + 1;

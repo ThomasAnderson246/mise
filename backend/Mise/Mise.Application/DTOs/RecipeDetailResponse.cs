@@ -60,6 +60,9 @@ namespace Mise.Application.DTOs
         public Guid StepId { get; set; }
         public int StepNumber { get; set; }
         public string Instruction { get; set; } = string.Empty;
+        public bool HasTimer { get; set; }
         public int? TimerDuration { get; set; }
+        public bool IsAsync     { get; set; }
+        public Guid? AsyncGroupId { get; set; }
     }
 }
