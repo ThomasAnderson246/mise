@@ -16,11 +16,7 @@ import { getCategories } from "@/api/categoryApi";
 import { getUnitTypes } from "@/api/unitTypeApi";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import type {
-  RecipeDetail,
-  RecipeIngredient,
-  RecipeStep,
-} from "@/api/recipeApi";
+import type { RecipeDetail } from "@/api/recipeApi";
 import type { IngredientItem } from "@/api/ingredientApi";
 import type { CategoryItem } from "@/api/categoryApi";
 import type { UnitTypeItem } from "@/api/unitTypeApi";
@@ -100,6 +96,11 @@ export default function RecipeEditorPage() {
           setSelectedCategories(
             recipeData.recipeCategories.map((rc) => rc.categoryId),
           );
+          console.log("Recipe categories:", recipeData.recipeCategories);
+          console.log(
+            "Selected categories after load:",
+            recipeData.recipeCategories.map((rc) => rc.categoryId),
+          );
         }
       } catch {
         setError("Failed to load data.");
@@ -154,6 +155,7 @@ export default function RecipeEditorPage() {
         });
       } else {
         //edit mode
+        console.log("Saving with categories:", selectedCategories);
         await updateRecipe(user.token, currentRecipeId, {
           title,
           description: description || null,
@@ -164,7 +166,7 @@ export default function RecipeEditorPage() {
         setRecipe(updated);
       }
     } catch {
-      setError("failed to save recipe.");
+      setError("Failed to save recipe.");
     } finally {
       setSaving(false);
     }
@@ -232,6 +234,7 @@ export default function RecipeEditorPage() {
         `${created.name} created. Remember to tag allergens in ingredient management.`,
       );
       setTimeout(() => setSavingMessage(null), 5000);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response?.data?.errors?.[0]) {
         setError(err.response.data.errors[0]);
@@ -337,6 +340,11 @@ export default function RecipeEditorPage() {
       {error && (
         <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-destructive text-destructive text-sm">
           {error}
+        </div>
+      )}
+      {savingMessage && (
+        <div className="mb-4 px-4 py-3 rounded-lg bg-yellow-50 border border-secondary text-secondary text-sm">
+          {savingMessage}
         </div>
       )}
 
@@ -578,11 +586,7 @@ export default function RecipeEditorPage() {
                   {error}
                 </div>
               )}
-              {savingMessage && (
-                <div className="mb-4 px-4 py-3 rounded-lg bg-yellow-50 border border-secondary text-secondary text-sm">
-                  {savingMessage}
-                </div>
-              )}
+
               <div className="flex gap-2">
                 <Button
                   onClick={handleCreateAndAddIngredient}

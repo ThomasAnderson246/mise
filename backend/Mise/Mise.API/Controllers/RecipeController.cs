@@ -29,7 +29,7 @@ namespace Mise.API.Controllers
         {
             var recipes = await _recipeService.GetAllAsync(_currentUser.TenantId);
 
-            var response = recipes.Select(r => new RecipeResponse
+            var response = recipes.Select(r => new RecipeListResponse
             {
                 RecipeId = r.RecipeId,
                 Title = r.Title,
@@ -39,9 +39,14 @@ namespace Mise.API.Controllers
                 TenantId = r.TenantId,
                 CreatedAt = r.CreatedAt,
                 UpdatedAt = r.UpdatedAt,
+                RecipeCategories = r.RecipeCategories.Select(rc => new RecipeCategoryResponse
+                {
+                    CategoryId = rc.Category.CategoryId,
+                    Name = rc.Category.Name
+                }).ToList()
             });
 
-            return Ok(ApiResponse<IEnumerable<RecipeResponse>>.Ok(response));
+            return Ok(ApiResponse<IEnumerable<RecipeListResponse>>.Ok(response));
         }
 
         [HttpGet("{id}")]
@@ -156,6 +161,8 @@ namespace Mise.API.Controllers
         [RequiresPermission("recipe", "update")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRecipeRequest request)
         {
+            _logger.LogInformation("Update recipe {Id} with categories: {Categories}",
+            id, string.Join(", ", request.CategoryIds ?? new List<Guid>()));
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<RecipeResponse>.Fail("Invalid request."));
 

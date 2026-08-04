@@ -31,6 +31,10 @@ export interface RecipeItem{
     tenantId: string
     createdAt:string
     updatedAt: string
+    recipeCategories: {
+        categoryId: string
+        name: string
+    }[]
 }
 
 export interface RecipeStep{
@@ -120,6 +124,7 @@ export async function createRecipe(token: string, request: CreateRecipeRequest):
 }
 
 export async function updateRecipe(token: string, recipeId: string, request: UpdateRecipeRequest): Promise<RecipeDetail>{
+    console.log('Update recipe request:', JSON.stringify(request))
     const response = await axios.put(`${BASE_URL}/api/recipe/${recipeId}`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}

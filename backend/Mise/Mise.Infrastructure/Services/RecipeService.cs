@@ -10,6 +10,7 @@ using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 
 namespace Mise.Infrastructure.Services
 {
@@ -19,13 +20,15 @@ namespace Mise.Infrastructure.Services
         private readonly MiseDbContext _context;
         private readonly IAuditLogServices _auditLogServices;
         private readonly INotificationService _notificationService;
+        private readonly ILogger<RecipeService> _logger;
 
-        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context, IAuditLogServices auditLogServices, INotificationService notificationService)
+        public RecipeService(IRecipeRepository reciperRepository, MiseDbContext context, IAuditLogServices auditLogServices, INotificationService notificationService, ILogger<RecipeService> logger)
         {
             _recipeRepository = reciperRepository;
             _context = context;
             _auditLogServices = auditLogServices;
             _notificationService = notificationService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<Recipe>> GetAllAsync(Guid tenantId)
@@ -113,6 +116,12 @@ namespace Mise.Infrastructure.Services
             var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
                 ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");
 
+            _logger.LogInformation("UpdateAsync - Title: {Title}, Description: {Description}, ScalingMode: {ScalingMode}, CategoryIds: {CategoryIds}",
+                request.Title ?? "null",
+                request.Description ?? "null",
+                request.ScalingMode ?? "null",
+                request.CategoryIds == null ? "null" : string.Join(", ", request.CategoryIds));
+
             var previousState = JsonSerializer.Serialize(new
             {
                 recipe.Title,
@@ -132,43 +141,46 @@ namespace Mise.Infrastructure.Services
 
             if (request.CategoryIds != null)
             {
-                var exisitng = _context.RecipeCategories
-                    .Where(rc => rc.RecipeId == recipeId);
-                _context.RecipeCategories.RemoveRange(exisitng);
-
-                
+                var existing = await _context.RecipeCategories
+                    .Where(rc => rc.RecipeId == recipeId)
+                    .ToListAsync();
+                _context.RecipeCategories.RemoveRange(existing);
 
                 var newCategories = request.CategoryIds.Select(cId => new RecipeCategory
                 {
                     RecipeId = recipeId,
                     CategoryId = cId,
                 }).ToList();
-
+                foreach (var cat in newCategories)
+                {
+                    _logger.LogInformation("Inserting recipe_category: RecipeId={RecipeId}, CategoryId={CategoryId}",
+                        cat.RecipeId, cat.CategoryId);
+                }
                 await _context.RecipeCategories.AddRangeAsync(newCategories);
                 await _context.SaveChangesAsync();
-
-                var newState = JsonSerializer.Serialize(new
-                {
-                    recipe.Title,
-                    recipe.Description,
-                    recipe.ScalingMode,
-                    recipe.Status
-                });
-
-                await _auditLogServices.LogAsync(
-                    tenantId,
-                    performedBy,
-                    "update",
-                    "recipe",
-                    recipe.RecipeId,
-                    previousState,
-                    newState);
             }
+
+            var newState = JsonSerializer.Serialize(new
+            {
+                recipe.Title,
+                recipe.Description,
+                recipe.ScalingMode,
+                recipe.Status
+            });
+
+            await _auditLogServices.LogAsync(
+                tenantId,
+                performedBy,
+                "update",
+                "recipe",
+                recipe.RecipeId,
+                previousState,
+                newState);
 
             return recipe;
         }
 
-        public async Task DeleteAsync(Guid recipeId, Guid tenantId, Guid performedBy)
+            public async Task DeleteAsync(Guid recipeId, Guid tenantId, Guid performedBy)
         {
             var recipe = await _recipeRepository.GetByIdAndTenantAsync(recipeId, tenantId)
                 ?? throw new KeyNotFoundException($"Recipe {recipeId} not found.");

@@ -29,8 +29,8 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(rc => rc.Category)
-                .WithMany(r => r.RecipeCategories)
-                .HasForeignKey(rc => rc.RecipeId)
+                .WithMany(c => c.RecipeCategories)
+                .HasForeignKey(rc => rc.CategoryId)  
                 .OnDelete(DeleteBehavior.Cascade);
 
         }
