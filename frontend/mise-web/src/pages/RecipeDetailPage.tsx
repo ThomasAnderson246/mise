@@ -151,7 +151,6 @@ export default function RecipeDetailPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Ingredients */}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
               Ingredients
@@ -208,7 +207,14 @@ export default function RecipeDetailPage() {
               </div>
             )}
           </section>
-
+          {console.log(
+            "Steps:",
+            version.steps.map((s) => ({
+              stepNumber: s.stepNumber,
+              hasTimer: s.hasTimer,
+              timerDuration: s.timerDuration,
+            })),
+          )}
           <section>
             <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
               Method
