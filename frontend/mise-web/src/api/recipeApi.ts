@@ -1,6 +1,7 @@
 import axios from "axios";
 import { BASE_URL } from "./config";
 
+
 export interface CreateRecipeRequest{
     title: string
     description: string | null
@@ -61,8 +62,10 @@ export interface RecipeVersion{
 export interface RecipeIngredient {
     recipeIngredientId: string
     ingredientName: string
+    ingredientId?: string
     quantity :number
     unitName: string | null
+    unitTypeId?: string | null
     displayOrder: number
     groupId: string | null
 }
@@ -178,6 +181,89 @@ export async function removeStep(token: string, recipeId: string, stepId: string
 
 export async function publishRecipe(token: string, recipeId:string):Promise<void>{
     await axios.post(`${BASE_URL}/api/recipe/${recipeId}/publish`, {},{
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function getDraft(token: string, recipeId:string): Promise<RecipeDetail | null>{
+    try {
+        const response = await axios.get(`${BASE_URL}/api/recipe/${recipeId}/draft`, {
+            withCredentials:true,
+            headers: {Authorization: `Bearer ${token}`}
+        })
+        return response.data.data
+    } catch {
+        return null
+    }
+}
+
+export async function createDraft(token: string, recipeId: string): Promise<void>{
+    await axios.post(`${BASE_URL}/api/recipe/${recipeId}/draft`,{},{
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function saveDraft(token: string, recipeId: string, versionId: string, request: {
+    ingredients: {
+        recipeIngredientId: string | null
+        ingredientId: string
+        quantity: number
+        unitTypeId: string | null
+        displayOrder: number
+        groupId: string | null
+        isNonConvertible: boolean
+        isRatioAnchor: boolean
+    } []
+    steps: {
+        stepId: string | null
+        stepNumber: number
+        instruction: string
+        hasTimer: boolean
+        timerDuraiton: number | null
+        isAsync: boolean
+        asyncGroupId: string | null
+    }[]
+    ingredientGroups: {
+        groupId: string | null
+        name: string
+        displayOrder: number
+    }[]
+}) : Promise<void> {
+    await axios.put(`${BASE_URL}/api/recipe/${recipeId}/draft/${versionId}`, request, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function discardDraft(token: string, recipeId: string): Promise<void>{
+    await axios.delete(`${BASE_URL}/api/recipe/${recipeId}/draft`, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+}
+
+export async function getVersionHistory(token: string, recipeId: string): Promise<{
+    versionId: string
+    versionNumber: number
+    isDraft: boolean
+    isPublished: boolean
+    isCurrent: boolean
+    createdAt: string
+    publishedAt: string | null
+    publishedByName: string | null
+}[]> {
+    const response = await axios.get(`${BASE_URL}/api/recipe/${recipeId}/versions`,{
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    }
+    )
+    return response.data.data
+}
+
+export async function restoreVersion(token: string, recipeId: string, versionId: string): Promise<void>{
+    await axios.post(`${BASE_URL}/api/recipe/${recipeId}/versions/${versionId}/restore`, [], {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}
     })
