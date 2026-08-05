@@ -244,6 +244,7 @@ export function IngredientSearch({
           <input
             type="number"
             value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
             placeholder="Quantity"
             className="w-28 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />

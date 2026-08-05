@@ -61,11 +61,12 @@ export interface RecipeVersion{
 
 export interface RecipeIngredient {
     recipeIngredientId: string
+    ingredientId:string
     ingredientName: string
-    ingredientId?: string
+   
     quantity :number
     unitName: string | null
-    unitTypeId?: string | null
+    unitTypeId: string | null
     displayOrder: number
     groupId: string | null
 }
@@ -221,7 +222,7 @@ export async function saveDraft(token: string, recipeId: string, versionId: stri
         stepNumber: number
         instruction: string
         hasTimer: boolean
-        timerDuraiton: number | null
+        timerDuration: number | null
         isAsync: boolean
         asyncGroupId: string | null
     }[]
@@ -231,6 +232,7 @@ export async function saveDraft(token: string, recipeId: string, versionId: stri
         displayOrder: number
     }[]
 }) : Promise<void> {
+    console.log('SaveDraft request:', JSON.stringify(request))
     await axios.put(`${BASE_URL}/api/recipe/${recipeId}/draft/${versionId}`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}

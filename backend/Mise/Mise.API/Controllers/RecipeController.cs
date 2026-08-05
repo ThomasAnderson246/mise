@@ -94,9 +94,11 @@ namespace Mise.API.Controllers
                                 .Select(ri => new RecipeIngredientResponse
                                 {
                                     RecipeIngredientId = ri.RecipeIngredientId,
+                                    IngredientId = ri.IngredientId,
                                     IngredientName = ri.Ingredient?.Name ?? string.Empty,
                                     Quantity = ri.Quantity,
                                     UnitName = ri.UnitType?.Name,
+                                    UnitTypeId = ri.UnitTypeId,
                                     DisplayOrder = ri.DisplayOrder,
                                     GroupId = ri.GroupId
                                 }).ToList()
@@ -444,17 +446,16 @@ namespace Mise.API.Controllers
         [RequiresPermission("recipe", "update")]
         public async Task<IActionResult> SaveDraft(Guid id, Guid versionId, [FromBody] SaveDraftRequest request)
         {
+            _logger.LogInformation("SaveDraft called - RecipeId: {Id}, VersionId: {VersionId}, Ingredients: {IngCount}, Steps: {StepCount}",
+                id, versionId, request.Ingredients?.Count ?? 0, request.Steps?.Count ?? 0);
             try
             {
                 await _recipeService.SaveDraftAsync(id, versionId, request, _currentUser.TenantId, _currentUser.UserId);
                 return Ok(ApiResponse<string>.Ok("Draft saved.", "Draft saved successfully."));
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                return NotFound(ApiResponse<string>.Fail(ex.Message));
-            }
-            catch (InvalidOperationException ex)
-            {
+                _logger.LogError("SaveDraft error: {Message}", ex.Message);
                 return BadRequest(ApiResponse<string>.Fail(ex.Message));
             }
         }
@@ -539,9 +540,11 @@ namespace Mise.API.Controllers
                     .Select(ri => new RecipeIngredientResponse
                     {
                         RecipeIngredientId = ri.RecipeIngredientId,
+                        IngredientId = ri.IngredientId,
                         IngredientName = ri.Ingredient?.Name ?? string.Empty,
                         Quantity = ri.Quantity,
                         UnitName = ri.UnitType?.Name,
+                        UnitTypeId = ri.UnitTypeId,
                         DisplayOrder = ri.DisplayOrder,
                         GroupId = ri.GroupId
                     }).ToList(),
@@ -570,9 +573,11 @@ namespace Mise.API.Controllers
                             .Select(ri => new RecipeIngredientResponse
                             {
                                 RecipeIngredientId = ri.RecipeIngredientId,
+                                IngredientId = ri.IngredientId,
                                 IngredientName = ri.Ingredient?.Name ?? string.Empty,
                                 Quantity = ri.Quantity,
                                 UnitName = ri.UnitType?.Name,
+                                UnitTypeId = ri.UnitTypeId,
                                 DisplayOrder = ri.DisplayOrder,
                                 GroupId = ri.GroupId
                             }).ToList()

@@ -36,9 +36,16 @@ export default function RecipesPage() {
   const filtered = recipes.filter((r) => {
     const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase());
     const matchesCategory =
-      categoryFilter === "all" ||
-      r.recipeCategories?.some((rc) => rc.categoryId === categoryFilter);
-    return matchesSearch && matchesCategory;
+      categoryFilter === "all"
+        ? true
+        : categoryFilter === "uncategorized"
+          ? r.recipeCategories?.length === 0
+          : r.recipeCategories?.some((rc) => rc.categoryId === categoryFilter);
+    const matchesDraftFilter =
+      hasPermission("recipe", "create") ||
+      hasPermission("recipe", "update") ||
+      r.status === "published";
+    return matchesCategory && matchesSearch && matchesDraftFilter;
   });
 
   function getStatusColor(status: string) {

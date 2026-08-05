@@ -48,9 +48,11 @@ namespace Mise.Application.DTOs
     public class RecipeIngredientResponse
     {
         public Guid RecipeIngredientId { get; set; }
+        public Guid IngredientId { get; set; }
         public string IngredientName { get; set; } = string.Empty;
         public decimal Quantity { get; set; }
         public string? UnitName { get; set; }
+        public Guid? UnitTypeId { get; set; }
         public int DisplayOrder { get; set; }
         public Guid? GroupId { get; set; }
     }
