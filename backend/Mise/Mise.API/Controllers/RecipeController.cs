@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Mise.API;
 using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
+using Mise.Infrastructure.Persistence.Context;
 
 namespace Mise.API.Controllers
 {
@@ -15,14 +17,16 @@ namespace Mise.API.Controllers
         private readonly ICurrentUserService _currentUser;
         private readonly ILogger<RecipeController> _logger;
         private readonly ISubRecipeService _subRecipeService;
+        private readonly MiseDbContext _context;
 
         public RecipeController(
-            IRecipeService recipeService, ISubRecipeService subRecipeService, ICurrentUserService currentUser, ILogger<RecipeController> logger)
+            IRecipeService recipeService, ISubRecipeService subRecipeService, ICurrentUserService currentUser, ILogger<RecipeController> logger, MiseDbContext context)
         {
             _recipeService = recipeService;
             _subRecipeService = subRecipeService;
             _currentUser = currentUser;
             _logger = logger;
+            _context = context;
         }
 
         [HttpGet]
@@ -31,6 +35,13 @@ namespace Mise.API.Controllers
         {
             var recipes = await _recipeService.GetAllAsync(_currentUser.TenantId);
 
+            var draftRecipeIdsList = await _context.RecipeVersions
+                .Where(rv => rv.IsDraft)
+                .Select(rv => rv.RecipeId)
+                .ToListAsync();
+
+            var draftRecipeIds = draftRecipeIdsList.ToHashSet();
+
             var response = recipes.Select(r => new RecipeListResponse
             {
                 RecipeId = r.RecipeId,
@@ -38,6 +49,7 @@ namespace Mise.API.Controllers
                 Description = r.Description,
                 Status = r.Status,
                 ScalingMode = r.ScalingMode,
+                HasActiveDraft = draftRecipeIds.Contains(r.RecipeId),
                 TenantId = r.TenantId,
                 CreatedAt = r.CreatedAt,
                 UpdatedAt = r.UpdatedAt,
