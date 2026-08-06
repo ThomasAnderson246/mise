@@ -139,11 +139,19 @@ export default function RecipesPage() {
                 <h3 className="font-medium text-foreground text-sm leading-snug">
                   {recipe.title}
                 </h3>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${getStatusColor(recipe.status)}`}
-                >
-                  {recipe.status}
-                </span>
+                {recipe.hasActiveDraft && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-100 text-yellow-800">
+                    draft pending
+                  </span>
+                )}
+
+                {recipe.status === "published" && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${getStatusColor(recipe.status)}`}
+                  >
+                    {recipe.status}
+                  </span>
+                )}
               </div>
               {recipe.description && (
                 <p className="text-xs text-muted-foreground line-clamp-2 mb-3">

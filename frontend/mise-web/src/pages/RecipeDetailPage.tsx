@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { RecipeDetail, SubRecipeItem } from "@/api/recipeApi";
 import { toast } from "sonner";
 import { RecipeTimer } from "@/components/RecipeTimer";
+import { getVersionHistory, restoreVersion } from "@/api/recipeApi";
 
 export default function RecipeDetailPage() {
   const { user, hasPermission } = useAuth();
@@ -20,17 +21,40 @@ export default function RecipeDetailPage() {
   const [publishing, setPublishing] = useState(false);
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
 
+  // version history
+  const [versionHistory, setVersionHistory] = useState<
+    {
+      versionId: string;
+      versionNumber: number;
+      isDraft: boolean;
+      isPublished: boolean;
+      isCurrent: boolean;
+      createdAt: string;
+      publishedAt: string | null;
+      publishedByName: string | null;
+    }[]
+  >([]);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [restoringVersionId, setRestoringVersionId] = useState<string | null>(
+    null,
+  );
+  const [showRestoreConfirm, setShowRestoreConfirm] = useState<string | null>(
+    null,
+  );
+
   useEffect(() => {
     if (!user?.token || !recipeId) return;
 
     async function loadRecipe() {
       try {
-        const [recipeData, subRecipeData] = await Promise.all([
+        const [recipeData, subRecipeData, versionData] = await Promise.all([
           getRecipeById(user!.token, recipeId!),
           getSubRecipes(user!.token, recipeId!),
+          getVersionHistory(user!.token, recipeId!),
         ]);
         setRecipe(recipeData);
         setSubRecipes(subRecipeData);
+        setVersionHistory(versionData);
       } catch {
         setError("Recipe not found.");
       } finally {
@@ -54,6 +78,25 @@ export default function RecipeDetailPage() {
       toast.error("Failed to publish recipe.");
     } finally {
       setPublishing(false);
+    }
+  }
+
+  async function handleRestore(versionId: string) {
+    if (!user?.token || !recipeId) return;
+    setRestoringVersionId(versionId);
+
+    try {
+      await restoreVersion(user.token, recipeId, versionId);
+      const updated = await getRecipeById(user.token, recipeId);
+      const updatedVersions = await getVersionHistory(user.token, recipeId);
+      setRecipe(updated);
+      setVersionHistory(updatedVersions);
+      setShowRestoreConfirm(null);
+      toast.success("Version restored successfully.");
+    } catch {
+      toast.error("Failed to restore version.");
+    } finally {
+      setRestoringVersionId(null);
     }
   }
 
@@ -129,7 +172,6 @@ export default function RecipeDetailPage() {
           </div>
         }
       />
-
       <div className="flex items-center gap-3 mb-8 flex-wrap">
         <span
           className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -152,7 +194,6 @@ export default function RecipeDetailPage() {
           Scaling: {recipe.scalingMode}
         </span>
       </div>
-
       {!version ? (
         <div className="bg-card rounded-lg p-6 border border-border text-center">
           <p className="text-muted-foreground text-sm">
@@ -254,7 +295,6 @@ export default function RecipeDetailPage() {
             )}
           </section>
 
-          {/* Sub-recipes */}
           {subRecipes.length > 0 && (
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
@@ -286,6 +326,91 @@ export default function RecipeDetailPage() {
             </section>
           )}
         </div>
+      )}
+      {versionHistory.length > 1 && (
+        <section>
+          <button
+            onClick={() => setShowVersionHistory((prev) => !prev)}
+            className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border w-full text-left"
+          >
+            Version History
+            <span className="text-sm text-muted-foreground font-normal ml-auto">
+              {versionHistory.length} versions{" "}
+              {showVersionHistory ? "up" : "down"}
+            </span>
+          </button>
+          {showVersionHistory && (
+            <div className="space-y-2">
+              {versionHistory.map((v) => (
+                <div
+                  key={v.versionId}
+                  className={`flex items-center gap-3 p-3 rounded-lg border ${
+                    v.isCurrent
+                      ? "bg-card border-primary"
+                      : "bg-card border-border"
+                  }`}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground ">
+                        Version {v.versionNumber}
+                      </span>
+                      {v.isCurrent && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-green text-green-800 font-medium">
+                          current
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Published{" "}
+                      {v.publishedAt
+                        ? new Date(v.publishedAt).toLocaleDateString()
+                        : new Date(v.createdAt).toLocaleTimeString()}
+                      {v.publishedByName && ` by ${v.publishedByName}`}
+                    </p>
+                  </div>
+
+                  {!v.isCurrent && hasPermission("recipe", "publish") && (
+                    <>
+                      {showRestoreConfirm === v.versionId ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            This will discard any active draft.
+                          </span>
+
+                          <Button
+                            onClick={() => handleRestore(v.versionId)}
+                            disabled={restoringVersionId === v.versionId}
+                            className="bg-primary text-primary-foreground text-xs h-7 px-3"
+                          >
+                            {restoringVersionId === v.versionId
+                              ? "Restoring..."
+                              : "Confirm"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setShowRestoreConfirm(null)}
+                            className="text-xs h-7 px-3"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowRestoreConfirm(v.versionId)}
+                          className="text-xs h-7 px-3"
+                        >
+                          Restore
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </div>
   );

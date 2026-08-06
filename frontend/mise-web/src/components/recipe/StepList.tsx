@@ -22,7 +22,7 @@ export function StepList({ steps, onRemove }: StepListProps) {
             <p className="text-sm text-foreground">{step.instruction}</p>
             {step.hasTimer && step.timerDuration && (
               <p className="text-xs text-muted-foreground mt-1">
-                {step.timerDuration} min
+                Step Timer: {step.timerDuration} min
               </p>
             )}
           </div>

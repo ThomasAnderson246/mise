@@ -32,6 +32,7 @@ export interface RecipeItem{
     tenantId: string
     createdAt:string
     updatedAt: string
+    hasActiveDraft: boolean
     recipeCategories: {
         categoryId: string
         name: string

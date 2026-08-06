@@ -9,6 +9,7 @@ import {
   createDraft,
   saveDraft,
   discardDraft,
+  publishRecipe,
 } from "@/api/recipeApi";
 import { getCategories } from "@/api/categoryApi";
 import { getUnitTypes } from "@/api/unitTypeApi";
@@ -20,11 +21,7 @@ import { StepList } from "@/components/recipe/StepList";
 import { StepForm } from "@/components/recipe/StepForm";
 import { toast } from "sonner";
 import { inputClass, selectClass } from "@/lib/styles";
-import type {
-  RecipeDetail,
-  RecipeIngredient,
-  RecipeStep,
-} from "@/api/recipeApi";
+import type { RecipeIngredient, RecipeStep } from "@/api/recipeApi";
 import type { CategoryItem } from "@/api/categoryApi";
 import type { UnitTypeItem } from "@/api/unitTypeApi";
 
@@ -39,7 +36,6 @@ export default function RecipeEditorPage() {
   const [scalingMode, setScalingMode] = useState("multiplier");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
   const [currentRecipeId, setCurrentRecipeId] = useState<string | null>(
     recipeId ?? null,
   );
@@ -60,7 +56,8 @@ export default function RecipeEditorPage() {
   // ui state
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
-  const [showDiscardconfirm, setShowDiscardConfirm] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     if (!user?.token) return;
@@ -76,7 +73,7 @@ export default function RecipeEditorPage() {
 
         if (isEditMode && recipeId) {
           const recipeData = await getRecipeById(user!.token, recipeId);
-          setRecipe(recipeData);
+
           setTitle(recipeData.title);
           setDescription(recipeData.description ?? "");
           setScalingMode(recipeData.scalingMode);
@@ -91,6 +88,7 @@ export default function RecipeEditorPage() {
               setDraftVersionId(existingDraft.currentVersion.versionId);
               setLocalIngredients(existingDraft.currentVersion.ingredients);
               setLocalSteps(existingDraft.currentVersion.steps);
+              setHasUnsavedChanges(true);
               toast.info("Resuming unsaved draft from a previous session.");
             } else {
               await createDraft(user!.token, recipeId);
@@ -131,7 +129,7 @@ export default function RecipeEditorPage() {
           categoryIds: selectedCategories,
         });
         setCurrentRecipeId(created.recipeId);
-        setRecipe(created);
+
         setDraftVersionId(created.currentVersion?.versionId ?? null);
         setLocalIngredients(created.currentVersion?.ingredients ?? []);
         setLocalSteps(created.currentVersion?.steps ?? []);
@@ -186,17 +184,19 @@ export default function RecipeEditorPage() {
     if (!user?.token || !currentRecipeId) return;
 
     try {
-      await discardDraft(user.token, currentRecipeId);
+      if (draftVersionId) {
+        await discardDraft(user.token, currentRecipeId);
+      }
+    } catch {
+      // try to remove db version first, if one exists
+      // no draft saved to db, move on to local state
+    } finally {
       const recipeData = await getRecipeById(user.token, currentRecipeId);
-      setRecipe(recipeData);
       setLocalIngredients(recipeData.currentVersion?.ingredients ?? []);
       setLocalSteps(recipeData.currentVersion?.steps ?? []);
       setDraftVersionId(null);
       setHasUnsavedChanges(false);
-      setShowDiscardConfirm(false);
-      toast.success('Draft discarded. Restored to published version.")');
-    } catch {
-      toast.error("Failed to discard draft.");
+      toast.success("Changes discarded");
     }
   }
 
@@ -230,6 +230,22 @@ export default function RecipeEditorPage() {
     );
   }
 
+  async function handlePublish() {
+    if (!user?.token || !currentRecipeId) return;
+    setPublishing(true);
+
+    try {
+      await handleSaveRecipe();
+      await publishRecipe(user.token, currentRecipeId);
+      toast.success("Recipe published successfully.");
+      navigate(`/${slug}/recipes/${currentRecipeId}`);
+    } catch {
+      toast.error("Failed to publish recipe.");
+    } finally {
+      setPublishing(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -246,10 +262,10 @@ export default function RecipeEditorPage() {
           <div className="flex gap-2">
             {isPublishedRecipe && (
               <>
-                {showDiscardconfirm ? (
+                {showDiscardConfirm ? (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      Discard all changes
+                      Discard all changes?
                     </span>
                     <Button
                       variant="outline"
@@ -266,26 +282,39 @@ export default function RecipeEditorPage() {
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowDiscardConfirm(true)}
-                    className="text-destructive border-destructive"
-                  >
-                    Discard changes
-                  </Button>
+                  hasUnsavedChanges && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDiscardConfirm(true)}
+                      className="text-destructive border-destructive"
+                    >
+                      Discard changes
+                    </Button>
+                  )
                 )}
               </>
             )}
             <Button variant="outline" onClick={() => navigate(-1)}>
-              Cancel
+              Back
             </Button>
-            <Button
-              onClick={handleSaveRecipe}
-              disabled={saving || !title.trim()}
-              className="bg-primary text-primary-foreground"
-            >
-              {saving ? "Saving..." : "Save"}
-            </Button>
+            {(hasUnsavedChanges || !currentRecipeId) && (
+              <Button
+                onClick={handleSaveRecipe}
+                disabled={saving || !title.trim()}
+                className="bg-primary text-primary-foreground"
+              >
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            )}
+            {isPublishedRecipe && draftVersionId && !hasUnsavedChanges && (
+              <Button
+                onClick={handlePublish}
+                disabled={publishing || !title.trim()}
+                className="bg-secondary text-secondary-foreground"
+              >
+                {publishing ? "Publishing..." : "Publish"}
+              </Button>
+            )}
           </div>
         }
       />
