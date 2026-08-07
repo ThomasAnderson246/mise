@@ -4,10 +4,23 @@ import { useAuth } from "@/context/AuthContext";
 import { getRecipeById, getSubRecipes, publishRecipe } from "@/api/recipeApi";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import type { RecipeDetail, SubRecipeItem } from "@/api/recipeApi";
+import type {
+  RecipeDetail,
+  SubRecipeItem,
+  RecipeVersion,
+} from "@/api/recipeApi";
 import { toast } from "sonner";
 import { RecipeTimer } from "@/components/RecipeTimer";
 import { getVersionHistory, restoreVersion } from "@/api/recipeApi";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { getVersionById } from "@/api/recipeApi";
+import { useScaling } from "@/hooks/useScaling";
+import { ScalingControl } from "@/components/recipe/ScalingControl";
 
 export default function RecipeDetailPage() {
   const { user, hasPermission } = useAuth();
@@ -20,6 +33,10 @@ export default function RecipeDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [selectedVersion, setSelectedVersion] = useState<RecipeVersion | null>(
+    null,
+  );
+  const [loadingVersion, setLoadingVersion] = useState(false);
 
   // version history
   const [versionHistory, setVersionHistory] = useState<
@@ -100,6 +117,30 @@ export default function RecipeDetailPage() {
     }
   }
 
+  async function handleViewVersion(versionId: string) {
+    if (!user?.token || !recipeId) return;
+    setLoadingVersion(true);
+
+    try {
+      const data = await getVersionById(user.token, recipeId, versionId);
+      setSelectedVersion(data.currentVersion);
+    } catch {
+      toast.error("Failed to load version.");
+    } finally {
+      setLoadingVersion(false);
+    }
+  }
+  const version = recipe?.currentVersion ?? null;
+  console.log("Scaling mode:", recipe?.scalingMode);
+  console.log(
+    "Version ingredients:",
+    version?.ingredients.map((i) => ({
+      name: i.ingredientName,
+      isRatioAnchor: i.isRatioAnchor,
+    })),
+  );
+  const scaling = useScaling(version, recipe?.scalingMode ?? "multiplier");
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -113,18 +154,6 @@ export default function RecipeDetailPage() {
       <div className="flex items-center justify-center py-16">
         <p className="text-muted-foreground">{error ?? "Recipe not found."}</p>
       </div>
-    );
-  }
-
-  const version = recipe.currentVersion;
-  {
-    console.log(
-      "Steps:",
-      version?.steps.map((s) => ({
-        stepNumber: s.stepNumber,
-        hasTimer: s.hasTimer,
-        timerDuration: s.timerDuration,
-      })),
     );
   }
 
@@ -207,6 +236,15 @@ export default function RecipeDetailPage() {
               Ingredients
             </h2>
 
+            <ScalingControl
+              isRatioMode={scaling.isRatioMode}
+              scalingFactor={scaling.scalingFactor}
+              onScalingFactorChange={scaling.setScalingFactor}
+              anchorIngredient={scaling.anchorIngredient}
+              anchorQuantity={scaling.anchorQuantity}
+              onAnchorQuantityChange={scaling.setAnchorQuantity}
+            />
+
             {version.recipeIngredientGroups.length === 0 &&
             version.ingredients.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -214,8 +252,7 @@ export default function RecipeDetailPage() {
               </p>
             ) : (
               <div className="space-y-6">
-                {/* Grouped ingredients */}
-                {version.recipeIngredientGroups.map((group) => (
+                {version.recipeIngredientGroups?.map((group) => (
                   <div key={group.groupId}>
                     <h3 className="text-sm font-medium text-secondary mb-2 uppercase tracking-wide">
                       {group.name}
@@ -227,11 +264,19 @@ export default function RecipeDetailPage() {
                           className="flex items-center gap-3 text-sm"
                         >
                           <span className="w-24 text-right font-medium text-foreground flex-shrink-0">
-                            {ing.quantity} {ing.unitName ?? ""}
+                            {scaling.formatQuantity(
+                              scaling.getScaledQuantity(ing),
+                            )}{" "}
+                            {ing.unitName ?? ""}
                           </span>
                           <span className="text-foreground">
                             {ing.ingredientName}
                           </span>
+                          {ing.isRatioAnchor && (
+                            <span className="text-xs text-secondary">
+                              anchor
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -246,11 +291,17 @@ export default function RecipeDetailPage() {
                         className="flex items-center gap-3 text-sm"
                       >
                         <span className="w-24 text-right font-medium text-foreground flex-shrink-0">
-                          {ing.quantity} {ing.unitName ?? ""}
+                          {scaling.formatQuantity(
+                            scaling.getScaledQuantity(ing),
+                          )}{" "}
+                          {ing.unitName ?? ""}
                         </span>
                         <span className="text-foreground">
                           {ing.ingredientName}
                         </span>
+                        {ing.isRatioAnchor && (
+                          <span className="text-xs text-secondary">anchor</span>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -349,6 +400,7 @@ export default function RecipeDetailPage() {
                       ? "bg-card border-primary"
                       : "bg-card border-border"
                   }`}
+                  onClick={() => !v.isCurrent && handleViewVersion(v.versionId)}
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
@@ -412,6 +464,87 @@ export default function RecipeDetailPage() {
           )}
         </section>
       )}
+
+      <Dialog
+        open={!!selectedVersion}
+        onOpenChange={() => setSelectedVersion(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Version{" "}
+              {versionHistory.find(
+                (v) => v.versionId === selectedVersion?.versionId,
+              )?.versionNumber ?? ""}{" "}
+              - {recipe.title}{" "}
+            </DialogTitle>
+          </DialogHeader>
+
+          {loadingVersion ? (
+            <p className="text-muted-foreground text-sm">Loading...</p>
+          ) : (
+            selectedVersion && (
+              <div className="space-y-6 mt-4">
+                <section>
+                  <h3 className="text-sm font-semibold text-foreground mb-3 pb-2 border-b border-border">
+                    Ingredients
+                  </h3>
+                  {selectedVersion.ingredients.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No ingredients.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {selectedVersion.ingredients.map((ing) => (
+                        <li
+                          key={ing.recipeIngredientId}
+                          className="flex items-center gap-3 text-sm"
+                        >
+                          <span className="w-24 text-right font-medium text-foreground flex-shrink-0">
+                            {ing.quantity} {ing.unitName ?? ""}
+                          </span>
+                          <span className="text-foreground">
+                            {ing.ingredientName}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </section>
+
+                <section>
+                  <h3 className="text-sm font-semibold text-foreground mb-3 pb-2 border-b border-border">
+                    Method
+                  </h3>
+                  {selectedVersion.steps.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No steps.</p>
+                  ) : (
+                    <ol className="space-y-3">
+                      {selectedVersion.steps.map((step) => (
+                        <li key={step.stepId} className="flex gap-3">
+                          <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                            {step.stepNumber}
+                          </span>
+                          <div className="flex-1">
+                            <p className="text-sm text-foreground">
+                              {step.instruction}
+                            </p>
+                            {step.hasTimer && step.timerDuration && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Timer: {step.timerDuration} mins
+                              </p>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </section>
+              </div>
+            )
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

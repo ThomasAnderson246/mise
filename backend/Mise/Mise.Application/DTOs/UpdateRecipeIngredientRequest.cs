@@ -12,5 +12,6 @@ namespace Mise.Application.DTOs
         public Guid? UnitTypeId { get; set; }
         public int? DisplayOrder {  get; set; }
         public Guid? GroupId { get; set; }
+        public bool? IsRatioAnchor { get; set; }
     }
 }

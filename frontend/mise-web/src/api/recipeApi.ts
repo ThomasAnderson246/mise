@@ -70,6 +70,8 @@ export interface RecipeIngredient {
     unitTypeId: string | null
     displayOrder: number
     groupId: string | null
+    isRatioAnchor: boolean
+    isNonConvertible: boolean
 }
 
 export interface RecipeDetail {
@@ -270,4 +272,13 @@ export async function restoreVersion(token: string, recipeId: string, versionId:
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}
     })
+}
+
+export async function getVersionById(token: string, recipeId: string, versionId: string): Promise<RecipeDetail>{
+    const response = await axios.get(`${BASE_URL}/api/recipe/${recipeId}/versions/${versionId}`, {
+        withCredentials: true,
+        headers: {Authorization: `Bearer ${token}`}
+    })
+
+    return response.data.data
 }

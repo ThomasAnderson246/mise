@@ -112,7 +112,9 @@ namespace Mise.API.Controllers
                                     UnitName = ri.UnitType?.Name,
                                     UnitTypeId = ri.UnitTypeId,
                                     DisplayOrder = ri.DisplayOrder,
-                                    GroupId = ri.GroupId
+                                    GroupId = ri.GroupId,
+                                    IsRatioAnchor = ri.IsRatioAnchor,
+                                    IsNonConvertible = ri.IsNonConvertible
                                 }).ToList()
 
                         }).ToList(),
@@ -122,11 +124,15 @@ namespace Mise.API.Controllers
                         .Select(ri => new RecipeIngredientResponse
                         {
                             RecipeIngredientId = ri.RecipeIngredientId,
-                            IngredientName = ri.Ingredient.Name ?? string.Empty,
+                            IngredientId = ri.IngredientId,
+                            IngredientName = ri.Ingredient?.Name ?? string.Empty,
                             Quantity = ri.Quantity,
                             UnitName = ri.UnitType?.Name,
+                            UnitTypeId = ri.UnitTypeId,
                             DisplayOrder = ri.DisplayOrder,
-                            GroupId = ri.GroupId
+                            GroupId = ri.GroupId,
+                            IsRatioAnchor = ri.IsRatioAnchor,
+                            IsNonConvertible = ri.IsNonConvertible
                         }).ToList(),
                     Steps = recipe.CurrentVersion.Steps
                         .OrderBy(s => s.StepNumber)
@@ -520,6 +526,30 @@ namespace Mise.API.Controllers
             return Ok(ApiResponse<IEnumerable<RecipeVersionSummaryResponse>>.Ok(response));
         }
 
+        [HttpGet("{id}/versions/{versionId}")]
+        [RequiresPermission("recipe", "read")]
+        public async Task<IActionResult> GetVersion(Guid id, Guid versionId)
+        {
+            var recipe = await _recipeService.GetByIdAsync(id, _currentUser.TenantId);
+            if (recipe == null)
+                return NotFound(ApiResponse<string>.Fail("Recipe not found."));
+
+            var version = await _context.RecipeVersions
+                .Where(rv => rv.VersionId == versionId && rv.RecipeId == id)
+                .Include(rv => rv.Steps)
+                .Include(rv => rv.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                .Include(rv => rv.Ingredients)
+                    .ThenInclude(ri => ri.UnitType)
+                .Include(rv => rv.IngredientGroups)
+                .FirstOrDefaultAsync();
+
+            if (version == null)
+                return NotFound(ApiResponse<string>.Fail("Version not found."));
+
+            return Ok(ApiResponse<RecipeDetailResponse>.Ok(MapVersionToResponse(version)));
+        }
+
         private static RecipeVersionSummaryResponse MapVersionSummaryToResponse(
             RecipeVersion v, Guid? currentVersionId) => new()
             {
@@ -558,7 +588,9 @@ namespace Mise.API.Controllers
                         UnitName = ri.UnitType?.Name,
                         UnitTypeId = ri.UnitTypeId,
                         DisplayOrder = ri.DisplayOrder,
-                        GroupId = ri.GroupId
+                        GroupId = ri.GroupId,
+                        IsRatioAnchor = ri.IsRatioAnchor,
+                        IsNonConvertible = ri.IsNonConvertible
                     }).ToList(),
                 Steps = v.Steps
                     .OrderBy(s => s.StepNumber)

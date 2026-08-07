@@ -338,6 +338,7 @@ namespace Mise.Infrastructure.Services
             if (request.UnitTypeId != null) ingredient.UnitTypeId = request.UnitTypeId;
             if (request.DisplayOrder != null) ingredient.DisplayOrder = request.DisplayOrder.Value;
             if (request.GroupId != null) ingredient.GroupId = request.GroupId;
+            if (request.IsRatioAnchor != null) ingredient.IsRatioAnchor = request.IsRatioAnchor.Value;
 
             _context.RecipeIngredients.Update(ingredient);
             await _context.SaveChangesAsync();

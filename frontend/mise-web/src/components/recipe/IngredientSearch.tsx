@@ -78,6 +78,8 @@ export function IngredientSearch({
       unitTypeId: unitTypeId || null,
       displayOrder: currentIngredientCount + 1,
       groupId: null,
+      isRatioAnchor: false,
+      isNonConvertible: false,
     };
 
     onIngredientAdded(newIngredient);
