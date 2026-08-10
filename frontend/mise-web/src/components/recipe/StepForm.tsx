@@ -11,6 +11,7 @@ export function StepForm({ onStepAdded, currentStepCount }: StepFormProps) {
   const [instruction, setInstruction] = useState("");
   const [hasTimer, setHasTimer] = useState(false);
   const [timerDuration, setTimerDuration] = useState("");
+  const [isAsync, setIsAsync] = useState(false);
 
   function handleAdd() {
     if (!instruction.trim()) return;
@@ -21,7 +22,7 @@ export function StepForm({ onStepAdded, currentStepCount }: StepFormProps) {
       instruction,
       hasTimer,
       timerDuration: hasTimer && timerDuration ? parseInt(timerDuration) : null,
-      isAsync: false,
+      isAsync,
       asyncGroupId: null,
     };
 
@@ -48,6 +49,14 @@ export function StepForm({ onStepAdded, currentStepCount }: StepFormProps) {
             onChange={(e) => setHasTimer(e.target.checked)}
           />
           Has Timer
+        </label>
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={isAsync}
+            onChange={(e) => setIsAsync(e.target.checked)}
+          />
+          Next step can begin while this one runs
         </label>
         {hasTimer && (
           <input

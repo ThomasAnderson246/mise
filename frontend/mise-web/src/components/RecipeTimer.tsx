@@ -1,51 +1,44 @@
-import { useState, useEffect, useRef } from "react";
+import { useTimers } from "@/context/TimerContext";
 
 interface RecipeTimerProps {
   durationMinutes: number;
+  stepId: string;
+  recipeTitle: string;
+  instruction: string;
 }
 
-export function RecipeTimer({ durationMinutes }: RecipeTimerProps) {
+export function RecipeTimer({
+  durationMinutes,
+  stepId,
+  recipeTitle,
+  instruction,
+}: RecipeTimerProps) {
+  const { timers, startTimer } = useTimers();
+  const activeTimer = timers.find((t) => t.stepId === stepId);
+
   const totalSeconds = durationMinutes * 60;
-  const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
-  const [isRunning, setIsRunning] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const remainingSeconds = activeTimer?.remainingSeconds ?? totalSeconds;
+  const isComplete = activeTimer?.isComplete ?? false;
+  const isRunning = !!activeTimer && isComplete;
 
-  useEffect(() => {
-    if (isRunning && secondsLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setSecondsLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (secondsLeft === 0) {
-      setIsRunning(false);
-    }
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  const progress = activeTimer
+    ? ((totalSeconds - remainingSeconds) / totalSeconds) * 100
+    : 0;
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isRunning, secondsLeft]);
-
-  function handleStartPause() {
-    setIsRunning((prev) => !prev);
+  function handleStart() {
+    startTimer(stepId, recipeTitle, instruction, durationMinutes);
   }
-
-  function handleReset() {
-    setIsRunning(false);
-    setSecondsLeft(totalSeconds);
-  }
-
-  const minutes = Math.floor(secondsLeft / 60);
-  const seconds = secondsLeft % 60;
-  const progress = ((totalSeconds - secondsLeft) / totalSeconds) * 100;
-  const isComplete = secondsLeft === 0;
 
   return (
     <div
-      className={`mt-2 flex-center gap-3 p-3 rounded-lg border ${
+      className={`mt-2 flex items-center gap-3 p-3 rounded-lg border ${
         isComplete ? "bg-green-50 border-green-200" : "bg-card border-border"
       }`}
     >
       <div className="relative w-10 h-10 flex-shrink-0">
-        <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+        <svg className="w-10 h-10 -rotat-90" viewBox="0 0 0 36">
           <circle
             cx="18"
             cy="18"
@@ -68,7 +61,7 @@ export function RecipeTimer({ durationMinutes }: RecipeTimerProps) {
           />
         </svg>
         <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-foreground">
-          {isComplete ? "checkMark" : `${minutes}m`}
+          {isComplete ? "yes" : `${minutes}m`}
         </span>
       </div>
 
@@ -86,20 +79,14 @@ export function RecipeTimer({ durationMinutes }: RecipeTimerProps) {
       </div>
 
       <div className="flex gap-2">
-        {!isComplete && (
+        {!isRunning && !isComplete && (
           <button
-            onClick={handleStartPause}
-            className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            onClick={handleStart}
+            className="text-xs px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
           >
-            {isRunning ? "Pause" : "Start"}
+            {isComplete ? "Dismiss" : "Running..."}
           </button>
         )}
-        <button
-          onClick={handleReset}
-          className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          Reset
-        </button>
       </div>
     </div>
   );

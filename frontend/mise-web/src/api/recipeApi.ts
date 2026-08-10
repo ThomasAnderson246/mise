@@ -55,6 +55,7 @@ export interface RecipeVersion{
     versionNumber: number
     isDraft: boolean
     isPublished: boolean
+    scalingMode?: string
     recipeIngredientGroups: RecipeIngredientGroup[]
     ingredients: RecipeIngredient[]
     steps: RecipeStep[]

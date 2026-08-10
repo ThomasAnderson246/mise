@@ -331,7 +331,12 @@ export default function RecipeDetailPage() {
                       </p>
                       <div className="flex items-center gap-3 mt-1">
                         {step.hasTimer && step.timerDuration && (
-                          <RecipeTimer durationMinutes={step.timerDuration} />
+                          <RecipeTimer
+                            durationMinutes={step.timerDuration}
+                            stepId={step.stepId}
+                            recipeTitle={recipe.title}
+                            instruction={step.instruction}
+                          />
                         )}
                         {step.isAsync && (
                           <span className="text-xs text-secondary">

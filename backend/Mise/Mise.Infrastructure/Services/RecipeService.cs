@@ -744,6 +744,25 @@ namespace Mise.Infrastructure.Services
                     });
                 }
 
+                Guid? currentGroupId = null;
+                foreach (var step in request.Steps)
+                {
+                    if (step.IsAsync)
+                    {
+                        if (currentGroupId == null)
+                            currentGroupId = Guid.NewGuid();
+                        step.AsyncGroupId = currentGroupId;
+                    }
+                    else
+                    {
+                        currentGroupId = null;
+                        step.AsyncGroupId = null;
+                    }
+                }
+
+                _context.RecipeSteps.RemoveRange(version.Steps);
+                await _context.SaveChangesAsync();
+
                 _context.RecipeIngredients.RemoveRange(version.Ingredients);
                 await _context.SaveChangesAsync();
 
