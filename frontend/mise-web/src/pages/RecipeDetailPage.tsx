@@ -164,6 +164,15 @@ export default function RecipeDetailPage() {
         subtitle={recipe.description ?? undefined}
         action={
           <div className="flex gap-2">
+            {hasPermission("recipe", "read") &&
+              recipe.status === "published" && (
+                <Button
+                  onClick={() => navigate(`/${slug}/recipes/${recipeId}/cook`)}
+                  className="bg-secondary text-secondary-foreground"
+                >
+                  Start Cooking
+                </Button>
+              )}
             {hasPermission("recipe", "update") && (
               <Button
                 variant="outline"

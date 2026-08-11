@@ -1,7 +1,7 @@
 import { useTimers } from "@/context/TimerContext";
 
 export function TimerBanner() {
-  const { timers, dismissTimer } = useTimers();
+  const { timers, dismissTimer, pauseTimer, resumeTimer } = useTimers();
 
   if (timers.length === 0) return null;
 
@@ -40,6 +40,16 @@ export function TimerBanner() {
                 ? "Done!"
                 : `${minutes}:${seconds.toString().padStart(2, "0")}`}
             </span>
+            <button
+              onClick={() =>
+                timer.isPaused
+                  ? resumeTimer(timer.timerId)
+                  : pauseTimer(timer.timerId)
+              }
+              className="text-xs opacity-75 hover:opacity-100 flex-shrink-0"
+            >
+              {timer.isPaused ? "▶" : "⏸"}
+            </button>
             <button
               onClick={() => dismissTimer(timer.timerId)}
               className="text-xs opacity-75 hover:opacity-100 flex-shrink-0"

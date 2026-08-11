@@ -13,13 +13,15 @@ export function RecipeTimer({
   recipeTitle,
   instruction,
 }: RecipeTimerProps) {
-  const { timers, startTimer } = useTimers();
+  const { timers, startTimer, dismissTimer, pauseTimer, resumeTimer } =
+    useTimers();
   const activeTimer = timers.find((t) => t.stepId === stepId);
 
   const totalSeconds = durationMinutes * 60;
   const remainingSeconds = activeTimer?.remainingSeconds ?? totalSeconds;
   const isComplete = activeTimer?.isComplete ?? false;
-  const isRunning = !!activeTimer && isComplete;
+  const isPaused = activeTimer?.isPaused ?? false;
+  //const isRunning = !!activeTimer && !isComplete && !isPaused;
 
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = remainingSeconds % 60;
@@ -79,12 +81,32 @@ export function RecipeTimer({
       </div>
 
       <div className="flex gap-2">
-        {!isRunning && !isComplete && (
+        {!activeTimer && !isComplete && (
           <button
             onClick={handleStart}
-            className="text-xs px-3 py-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
+            className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            {isComplete ? "Dismiss" : "Running..."}
+            Start
+          </button>
+        )}
+        {activeTimer && !isComplete && (
+          <button
+            onClick={() =>
+              isPaused
+                ? resumeTimer(activeTimer.timerId)
+                : pauseTimer(activeTimer.timerId)
+            }
+            className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            {isPaused ? "Resume" : "Pause"}
+          </button>
+        )}
+        {(activeTimer || isComplete) && (
+          <button
+            onClick={() => activeTimer && dismissTimer(activeTimer.timerId)}
+            className="text-xs px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            {isComplete ? "Dismiss" : "X"}
           </button>
         )}
       </div>

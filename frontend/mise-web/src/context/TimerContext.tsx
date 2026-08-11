@@ -10,6 +10,7 @@ export interface ActiveTimer {
   remainingSeconds: number;
   startedAt: number;
   isComplete: boolean;
+  isPaused: boolean;
 }
 
 interface TimerContextType {
@@ -36,8 +37,15 @@ export function TimerProvider({ children }: { children: ReactNode }) {
     intervalRef.current = setInterval(() => {
       setTimers((prev) =>
         prev.map((timer) => {
-          if (timer.isComplete || timer.remainingSeconds <= 0) {
-            return { ...timer, remainingSeconds: 0, isComplete: true };
+          if (
+            timer.isComplete ||
+            timer.isPaused ||
+            timer.remainingSeconds <= 0
+          ) {
+            return {
+              ...timer,
+              remainingSeconds: Math.max(0, timer.remainingSeconds),
+            };
           }
           return { ...timer, remainingSeconds: timer.remainingSeconds - 1 };
         }),
@@ -67,6 +75,7 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       remainingSeconds: totalSeconds,
       startedAt: Date.now(),
       isComplete: false,
+      isPaused: false,
     };
 
     setTimers((prev) => [...prev, newTimer]);
@@ -76,15 +85,13 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   function pauseTimer(timerId: string) {
     // this needs to be cleanedup later... it works for now
     setTimers((prev) =>
-      prev.map((t) => (t.timerId === timerId ? { ...t, isComplete: true } : t)),
+      prev.map((t) => (t.timerId === timerId ? { ...t, isPaused: true } : t)),
     );
   }
 
   function resumeTimer(timerId: string) {
     setTimers((prev) =>
-      prev.map((t) =>
-        t.timerId === timerId ? { ...t, isComplete: false } : t,
-      ),
+      prev.map((t) => (t.timerId === timerId ? { ...t, isPaused: false } : t)),
     );
   }
 

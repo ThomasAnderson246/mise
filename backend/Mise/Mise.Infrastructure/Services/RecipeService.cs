@@ -784,7 +784,7 @@ namespace Mise.Infrastructure.Services
                     });
                 }
 
-                _context.RecipeSteps.RemoveRange(version.Steps);
+                
                 await _context.SaveChangesAsync();
 
                 foreach (var step in request.Steps)
