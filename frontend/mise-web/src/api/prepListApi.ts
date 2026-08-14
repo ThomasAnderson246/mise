@@ -29,13 +29,17 @@ export interface PrepListItem {
 
 export interface PrepList {
     prepListId: string
+    tenantId: string
     name: string
     createdBy: string | null
     createdbyName: string | null
+    assignedTo: string | null
+    assignedToName: string | null
     totalItems: number
     completedItems: number
     isComplete: boolean
     createdAt: string
+    items: PrepListItem[]
 }
 
 export interface CreatePrepListRequest {

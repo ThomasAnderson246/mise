@@ -61,6 +61,7 @@ namespace Mise.API.Controllers
             }
             var response = new LoginResponse
             {
+                UserId = user.UserId,
                 Token = token,
                 Email = user.Email,
                 FirstName = user.FirstName,
