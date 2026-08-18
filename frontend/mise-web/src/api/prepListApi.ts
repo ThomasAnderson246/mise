@@ -16,15 +16,22 @@ export interface PrepListSummary{
 export interface PrepListItem {
     prepListItemId: string
     prepListId: string
+    sourceType: string
     itemName: string
-    quantity: number | null
-    unit: string | null
     recipeId: string | null
     recipeTitle: string | null
-    isComplete: boolean
-    completedAt: string | null
-    completedByName: string | null
+    scalingFactor: string | null
+    anchorIngredientId: string | null
+    anchorIngredientName: string | null
+    anchorQuantity: string | null
+    quantity: number | null
+    unit: string | null
     notes: string | null
+    displayOrder: number
+    isComplete: boolean
+    completedBy: string | null
+    completedByName: string | null
+    completedAt: string | null
 }
 
 export interface PrepList {
@@ -48,11 +55,16 @@ export interface CreatePrepListRequest {
 }
 
 export interface AddPrepListItemRequest {
+    sourceType: string
     itemName: string
+    recipeId: string | null
+    scalingFactor: number | null
+    anchorIngredientId: string | null
+    anchorQuantity: number | null
     quantity: number | null
     unit: string | null
-    recipeId: string | null
     notes: string | null
+    displayOrder: number
 }
 
 export async function getPrepLists(token: string): Promise<PrepList[]>{
@@ -83,6 +95,7 @@ export async function createPrepList(token: string, request: CreatePrepListReque
 }
 
 export async function addPrepListItem(token: string, prepListId: string, request: AddPrepListItemRequest): Promise<PrepList>{
+    console.log('Adding item:', JSON.stringify(request))
     const response = await axios.post(`${BASE_URL}/api/preplist/${prepListId}/items`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}

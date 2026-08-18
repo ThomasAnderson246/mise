@@ -46,6 +46,10 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(r => r.CurrentVersionId)
                 .HasColumnName("current_version_id");
 
+            builder.Property(r => r.IsPortion)
+                .HasColumnName("is_portion")
+                .HasDefaultValue(false);
+
             builder.Property(r => r.CreatedBy)
                 .HasColumnName("created_by");
 

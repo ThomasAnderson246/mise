@@ -14,6 +14,7 @@ namespace Mise.Domain.Entities
         public string? Description { get; set; }
         public string Status { get; set; } = "draft";
         public string ScalingMode { get; set; } = "multiplier";
+        public bool IsPortion { get; set; } = false;
         public Guid? CurrentVersionId { get; set; }
         public Guid? CreatedBy { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

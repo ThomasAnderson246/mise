@@ -4,19 +4,26 @@ import { useAuth } from "@/context/AuthContext";
 import {
   getPrepListById,
   completeItem,
-  forceCompleteItem,
+  //forceCompleteItem,
   completePrepList,
   forceCompletePrepList,
   addPrepListItem,
   deletePrepListItem,
   assignPrepList,
 } from "@/api/prepListApi";
+import { getUsers } from "@/api/userApi";
 import { getRecipes } from "@/api/recipeApi";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { AddPrepListItemForm } from "@/components/preplist/AddPrepListItemForm";
 import { toast } from "sonner";
-import type { PrepList, PrepListItem } from "@/api/prepListApi";
+import type {
+  AddPrepListItemRequest,
+  PrepList,
+  PrepListItem,
+} from "@/api/prepListApi";
 import type { RecipeItem } from "@/api/recipeApi";
+import type { UserItem } from "@/api/userApi";
 
 export default function PrepListDetailPage() {
   const { user, hasPermission } = useAuth();
@@ -29,6 +36,7 @@ export default function PrepListDetailPage() {
   const [prepList, setPrepList] = useState<PrepList | null>(null);
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState<RecipeItem[]>([]);
+  const [users, setUsers] = useState<UserItem[]>([]);
 
   // authentication states
   const [isOwner, setIsOwner] = useState(false);
@@ -37,12 +45,6 @@ export default function PrepListDetailPage() {
 
   // add item form state variables
   const [showAddItem, setShowAddItem] = useState(false);
-  const [itemName, setItemName] = useState("");
-  const [itemQuantity, setItemQuantity] = useState("");
-  const [itemUnit, setItemUnit] = useState("");
-  const [itemRecipeId, setItemRecipeId] = useState("");
-  const [itemNotes, setItemNotes] = useState("");
-  const [addingItem, setAddingItem] = useState(false);
 
   //assign prep list form
   const [showAssign, setShowAssign] = useState(false);
@@ -56,12 +58,15 @@ export default function PrepListDetailPage() {
 
     async function load() {
       try {
-        const [prepData, recipeData] = await Promise.all([
+        const [prepData, recipeData, userData] = await Promise.all([
           getPrepListById(user!.token, prepListId!),
           getRecipes(user!.token),
+          getUsers(user!.token),
         ]);
+        console.log("PrepList data:", prepData);
         setPrepList(prepData);
         setRecipes(recipeData);
+        setUsers(userData);
         const owner = prepData.createdBy === user!.userId;
         const manage = hasPermission("preplist", "manage");
         setIsOwner(owner);
@@ -99,31 +104,16 @@ export default function PrepListDetailPage() {
     }
   }
 
-  async function handleAddItem() {
-    if (!user?.token || !prepListId || itemName.trim()) return;
-
-    setAddingItem(true);
+  async function handleAddItem(request: AddPrepListItemRequest) {
+    if (!user?.token || !prepListId) return;
 
     try {
-      const updated = await addPrepListItem(user.token, prepListId, {
-        itemName,
-        quantity: itemQuantity ? parseFloat(itemQuantity) : null,
-        unit: itemUnit || null,
-        recipeId: itemRecipeId || null,
-        notes: itemNotes || null,
-      });
+      const updated = await addPrepListItem(user.token, prepListId, request);
       setPrepList(updated);
-      setItemName("");
-      setItemQuantity("");
-      setItemUnit("");
-      setItemRecipeId("");
-      setItemNotes("");
       setShowAddItem(false);
       toast.success("Item added.");
     } catch {
-      toast.error("Failed to add item.");
-    } finally {
-      setAddingItem(false);
+      toast.error("Failed to add item");
     }
   }
 
@@ -262,24 +252,141 @@ export default function PrepListDetailPage() {
 
       {showAssign && (
         <div className="mb-4 p-4 bg-card rounded-lg border border-border space-y-3">
-          <p className="text-sm font-medium text-foreground">Assign to cook</p>
-          <input
-            type="text"
+          <p className="text-sm font-medium text-foreground">Assign to user</p>
+          <select
             value={assignUserId}
             onChange={(e) => setAssignUserId(e.target.value)}
-            placeholder="User id..."
             className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          >
+            <option value="">Select a user...</option>
+            {users.map((u) => (
+              <option key={u.userId} value={u.userId}>
+                {u.firstName} {u.lastName} - {u.role}
+              </option>
+            ))}
+          </select>
           <div className="flex gap-2">
             <Button
               onClick={handleAssign}
+              disabled={!assignUserId}
               className="bg-primary text-primary-foreground"
             >
               Assign
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAssign(false);
+                setAssignUserId("");
+              }}
+            >
+              Cancel
+            </Button>
           </div>
         </div>
       )}
+
+      <div className="space-y-2 mb-6">
+        {prepList.items.map((item) => (
+          <div
+            key={item.prepListItemId}
+            className={`flex items-center gap-3 p-4 rounded-lg border ${
+              item.isComplete
+                ? "bg-muted border-border opacity-60"
+                : "bg-card border-border"
+            }`}
+          >
+            {!prepList.isComplete && canComplete && !item.isComplete && (
+              <input
+                type="checkbox"
+                checked={item.isComplete}
+                onChange={() => handleCompleteItem(item)}
+                className="w-5 h-5 rounded flex-shrink-0 cursor-pointer accent-secondary"
+              />
+            )}
+            {(prepList.isComplete || !canComplete || item.isComplete) && (
+              <div
+                className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
+                  item.isComplete
+                    ? "bg-secondary border-secondary"
+                    : "border-border"
+                }`}
+              >
+                {item.isComplete && (
+                  <span className="text-white text-xs">check</span>
+                )}
+              </div>
+            )}
+
+            <div className="flex-1 min-w-0">
+              <p
+                className={`text-sm font-medium ${
+                  item.isComplete
+                    ? "line-through text-muted-foreground"
+                    : "text-foreground"
+                }`}
+              >
+                {item.itemName}
+                {item.quantity && (
+                  <span className="font-normal text-muted-foreground ml-2">
+                    - {item.quantity} {item.unit ?? ""}
+                  </span>
+                )}
+              </p>
+              {item.notes && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {item.notes}
+                </p>
+              )}
+              {item.completedByName && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Completed by {item.completedByName}
+                </p>
+              )}
+            </div>
+
+            {item.recipeId && item.recipeTitle && (
+              <button
+                onClick={() =>
+                  navigate(`/${slug}/recipes/${item.recipeId}/cook`)
+                }
+                className="text-xs text-secondary hover:underline flex-shrink-0"
+              >
+                Cook
+              </button>
+            )}
+
+            {!prepList.isComplete && canManage && (
+              <button
+                onClick={() => handleDeleteItem(item.prepListItemId)}
+                className="text-xs text-destructive hover:underline flex-shrink-0"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        ))}
+
+        {!prepList.isComplete && hasPermission("preplist", "update") && (
+          <div>
+            {!showAddItem ? (
+              <Button
+                variant="outline"
+                onClick={() => setShowAddItem(true)}
+                className="w-full"
+              >
+                + Add Item
+              </Button>
+            ) : (
+              <AddPrepListItemForm
+                currentItemCount={prepList.items.length}
+                onItemAdded={handleAddItem}
+                onCancel={() => setShowAddItem(false)}
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

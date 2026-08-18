@@ -50,6 +50,7 @@ namespace Mise.API.Controllers
                 Status = r.Status,
                 ScalingMode = r.ScalingMode,
                 HasActiveDraft = draftRecipeIds.Contains(r.RecipeId),
+                IsPortion = r.IsPortion,
                 TenantId = r.TenantId,
                 CreatedAt = r.CreatedAt,
                 UpdatedAt = r.UpdatedAt,

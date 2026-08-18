@@ -33,6 +33,7 @@ export interface RecipeItem{
     createdAt:string
     updatedAt: string
     hasActiveDraft: boolean
+    isPortion: boolean
     recipeCategories: {
         categoryId: string
         name: string

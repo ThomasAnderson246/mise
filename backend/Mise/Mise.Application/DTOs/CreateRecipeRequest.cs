@@ -12,5 +12,6 @@ namespace Mise.Application.DTOs
         public string? Description {  get; set; }
         public string ScalingMode { get; set; } = "multiplier";
         public List<Guid>? CategoryIds { get; set; }
+        public bool IsPortion { get; set; } = false;
     }
 }

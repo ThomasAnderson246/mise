@@ -59,6 +59,10 @@ namespace Mise.Infrastructure.Persistence.Repositories
                     .ThenInclude(i => i.Recipe)
                 .Include(pl => pl.Items)
                     .ThenInclude(i => i.CompletedByUser)
+                .Include(pl => pl.Items)
+                    .ThenInclude(i => i.AnchorIngredient)
+                .Include(pl => pl.CreatedByUser)
+                .Include(pl => pl.AssignedToUser)
                 .FirstOrDefaultAsync();
         }
     }

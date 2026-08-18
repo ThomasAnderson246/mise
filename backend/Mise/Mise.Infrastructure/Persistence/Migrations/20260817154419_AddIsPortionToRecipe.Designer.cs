@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mise.Infrastructure.Persistence.Context;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mise.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiseDbContext))]
-    partial class MiseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260817154419_AddIsPortionToRecipe")]
+    partial class AddIsPortionToRecipe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -677,15 +680,6 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasColumnName("prep_list_item_id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("AnchorIngredientId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("anchor_ingredient_id");
-
-                    b.Property<decimal?>("AnchorQuantity")
-                        .HasPrecision(10, 4)
-                        .HasColumnType("numeric(10,4)")
-                        .HasColumnName("anchor_quantity");
-
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("completed_at");
@@ -704,49 +698,22 @@ namespace Mise.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_complete");
 
-                    b.Property<string>("ItemName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("item_name");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text")
-                        .HasColumnName("notes");
-
                     b.Property<Guid>("PrepListId")
                         .HasColumnType("uuid")
                         .HasColumnName("prep_list_id");
 
-                    b.Property<decimal?>("Quantity")
-                        .HasPrecision(10, 4)
-                        .HasColumnType("numeric(10,4)")
-                        .HasColumnName("quantity");
-
-                    b.Property<Guid?>("RecipeId")
-                        .IsRequired()
+                    b.Property<Guid>("RecipeId")
                         .HasColumnType("uuid")
                         .HasColumnName("recipe_id");
 
-                    b.Property<decimal?>("ScalingFactor")
+                    b.Property<decimal>("ScalingFactor")
+                        .ValueGeneratedOnAdd()
                         .HasPrecision(10, 4)
                         .HasColumnType("numeric(10,4)")
+                        .HasDefaultValue(1m)
                         .HasColumnName("scaling_factor");
 
-                    b.Property<string>("SourceType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("source_type");
-
-                    b.Property<string>("Unit")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("unit");
-
                     b.HasKey("PrepListItemId");
-
-                    b.HasIndex("AnchorIngredientId");
 
                     b.HasIndex("CompletedBy");
 
@@ -1796,11 +1763,6 @@ namespace Mise.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Mise.Domain.Entities.PrepListItem", b =>
                 {
-                    b.HasOne("Mise.Domain.Entities.Ingredient", "AnchorIngredient")
-                        .WithMany()
-                        .HasForeignKey("AnchorIngredientId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Mise.Domain.Entities.User", "CompletedByUser")
                         .WithMany()
                         .HasForeignKey("CompletedBy")
@@ -1815,10 +1777,8 @@ namespace Mise.Infrastructure.Persistence.Migrations
                     b.HasOne("Mise.Domain.Entities.Recipe", "Recipe")
                         .WithMany()
                         .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AnchorIngredient");
 
                     b.Navigation("CompletedByUser");
 

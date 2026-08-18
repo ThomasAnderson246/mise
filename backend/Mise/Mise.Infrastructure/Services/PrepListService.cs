@@ -126,10 +126,25 @@ namespace Mise.Infrastructure.Services
             if (prepList.IsComplete)
                 throw new InvalidOperationException("Cannot add items to a completed prep list.");
 
-            var recipeExists = await _context.Recipes
-                .AnyAsync(r => r.RecipeId == request.RecipeId && r.TenantId == tenantId);
-            if (!recipeExists)
-                throw new KeyNotFoundException($"Recipe {request.RecipeId} not found.");
+
+            if (request.SourceType == "recipe" || request.SourceType == "portion")
+            {
+                if (request.RecipeId == null)
+                    throw new InvalidOperationException("RecipeId is required for recipe and portions.");
+
+                var recipeExists = await _context.Recipes
+                    .AnyAsync(r => r.RecipeId == request.RecipeId && r.TenantId == tenantId);
+                if (!recipeExists)
+                    throw new KeyNotFoundException($"Recipe {request.RecipeId} not found.");
+
+                if (request.AnchorIngredientId != null)
+                {
+                    var anchorExists = await _context.Ingredients
+                        .AnyAsync(i => i.IngredientId == request.AnchorIngredientId && i.TenantId == tenantId);
+                    if (!anchorExists)
+                        throw new KeyNotFoundException($"Anchor ingredient {request.AnchorIngredientId} not found.");
+                }
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -138,9 +153,16 @@ namespace Mise.Infrastructure.Services
                 {
                     PrepListItemId = Guid.NewGuid(),
                     PrepListId = prepListId,
+                    SourceType = request.SourceType,
+                    ItemName = request.ItemName,
                     RecipeId = request.RecipeId,
-                    DisplayOrder = request.DisplayOrder,
                     ScalingFactor = request.ScalingFactor,
+                    AnchorIngredientId = request.AnchorIngredientId,
+                    AnchorQuantity = request.AnchorQuantity,
+                    Quantity = request.Quantity,
+                    Unit = request.Unit,
+                    Notes = request.Notes,
+                    DisplayOrder = request.DisplayOrder,
                     IsComplete = false
                 };
 
@@ -156,6 +178,8 @@ namespace Mise.Infrastructure.Services
                     null,
                     JsonSerializer.Serialize(new
                     {
+                        request.SourceType,
+                        request.ItemName,
                         RecipeId = request.RecipeId,
                         request.ScalingFactor,
                         request.DisplayOrder

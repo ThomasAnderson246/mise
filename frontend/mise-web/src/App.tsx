@@ -9,6 +9,7 @@ import RecipeDetailPage from "./pages/RecipeDetailPage";
 import RecipeEditorPage from "./pages/RecipeEditorPage";
 import CookingModePage from "./pages/CookingModePage";
 import PrepListPage from "./pages/PrepListPage";
+import PrepListDetailPage from "./pages/PrepListDetailPage";
 
 function SlugRoutes() {
   const { slug } = useParams<{ slug: string }>();
@@ -23,7 +24,10 @@ function SlugRoutes() {
           <Route path="recipes/:recipeId" element={<RecipeDetailPage />} />
           <Route path="recipes" element={<RecipesPage />} />
           <Route path="prep-lists" element={<PrepListPage />} />
-          {/*<Route path="prep-lists/:prepListId" element={<PrepListDetailPage/>} /> */}
+          <Route
+            path="prep-lists/:prepListId"
+            element={<PrepListDetailPage />}
+          />
         </Route>
         <Route path="recipes/:recipeId/cook" element={<CookingModePage />} />
       </Routes>

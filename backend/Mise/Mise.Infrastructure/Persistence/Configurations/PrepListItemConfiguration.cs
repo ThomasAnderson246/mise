@@ -26,9 +26,41 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("prep_list_id")
                 .IsRequired();
 
+            builder.Property(pli => pli.SourceType)
+                .HasColumnName("source_type")
+                .HasMaxLength(20)
+                .IsRequired();
+
+            builder.Property(pli => pli.ItemName)
+                .HasColumnName("item_name")
+                .HasMaxLength(255)
+                .IsRequired();
+
             builder.Property(pli => pli.RecipeId)
                 .HasColumnName("recipe_id")
                 .IsRequired();
+
+            builder.Property(pli => pli.ScalingFactor)
+                .HasColumnName("scaling_factor")
+                .HasPrecision(10, 4);
+
+            builder.Property(pli => pli.AnchorIngredientId)
+                .HasColumnName("anchor_ingredient_id");
+
+            builder.Property(pli => pli.AnchorQuantity)
+                .HasColumnName("anchor_quantity")
+                .HasPrecision(10, 4);
+
+            builder.Property(pli => pli.Quantity)
+                .HasColumnName("quantity")
+                .HasPrecision(10, 4);
+
+            builder.Property(pli => pli.Unit)
+                .HasColumnName("unit")
+                .HasMaxLength(50);
+
+            builder.Property(pli => pli.Notes)
+                .HasColumnName("notes");
 
             builder.Property(pli => pli.DisplayOrder)
                 .HasColumnName("display_order")
@@ -44,10 +76,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(pli => pli.CompletedAt)
                 .HasColumnName("completed_at");
 
-            builder.Property(pli => pli.ScalingFactor)
-                .HasColumnName("scaling_factor")
-                .HasPrecision(10, 4)
-                .HasDefaultValue(1m);
+            // keys & restraints
 
             builder.HasOne(pli => pli.PrepList)
                 .WithMany(pl => pl.Items)
@@ -57,7 +86,12 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.HasOne(pli => pli.Recipe)
                 .WithMany()
                 .HasForeignKey(pli => pli.RecipeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(pli => pli.AnchorIngredient)
+                .WithMany()
+                .HasForeignKey(pli => pli.AnchorIngredientId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasOne(pli => pli.CompletedByUser)
                 .WithMany()
