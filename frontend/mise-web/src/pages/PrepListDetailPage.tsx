@@ -12,7 +12,6 @@ import {
   assignPrepList,
 } from "@/api/prepListApi";
 import { getUsers } from "@/api/userApi";
-import { getRecipes } from "@/api/recipeApi";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { AddPrepListItemForm } from "@/components/preplist/AddPrepListItemForm";
@@ -22,7 +21,6 @@ import type {
   PrepList,
   PrepListItem,
 } from "@/api/prepListApi";
-import type { RecipeItem } from "@/api/recipeApi";
 import type { UserItem } from "@/api/userApi";
 
 export default function PrepListDetailPage() {
@@ -35,7 +33,6 @@ export default function PrepListDetailPage() {
 
   const [prepList, setPrepList] = useState<PrepList | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recipes, setRecipes] = useState<RecipeItem[]>([]);
   const [users, setUsers] = useState<UserItem[]>([]);
 
   // authentication states
@@ -58,14 +55,13 @@ export default function PrepListDetailPage() {
 
     async function load() {
       try {
-        const [prepData, recipeData, userData] = await Promise.all([
+        const [prepData, userData] = await Promise.all([
           getPrepListById(user!.token, prepListId!),
-          getRecipes(user!.token),
           getUsers(user!.token),
         ]);
         console.log("PrepList data:", prepData);
         setPrepList(prepData);
-        setRecipes(recipeData);
+
         setUsers(userData);
         const owner = prepData.createdBy === user!.userId;
         const manage = hasPermission("preplist", "manage");
@@ -100,7 +96,7 @@ export default function PrepListDetailPage() {
       setPrepList(updated);
       toast.success(`${item.itemName} marked as complete.`);
     } catch {
-      toast.error("Failed to omplete item.");
+      toast.error("Failed to complete item.");
     }
   }
 

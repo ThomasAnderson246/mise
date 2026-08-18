@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
@@ -12,7 +13,8 @@ namespace Mise.Infrastructure.Persistence.Repositories
 {
     public class PrepListRepository : BaseTenantRepository<PrepList>, IPrepListRepository
     {
-        public PrepListRepository(MiseDbContext context) : base(context) { }    
+        private readonly ILogger<PrepListRepository> _logger;
+        public PrepListRepository(MiseDbContext context, ILogger<PrepListRepository> logger) : base(context) { _logger = logger; }    
 
         public override async Task<IEnumerable<PrepList>> GetAllByTenantAsync(Guid tenantId)
         {
@@ -56,7 +58,6 @@ namespace Mise.Infrastructure.Persistence.Repositories
             return await _context.PrepLists
                 .Where(pl => pl.PrepListId == prepListId && pl.TenantId == tenantId)
                 .Include(pl => pl.Items.OrderBy(i => i.DisplayOrder))
-                    .ThenInclude(i => i.Recipe)
                 .Include(pl => pl.Items)
                     .ThenInclude(i => i.CompletedByUser)
                 .Include(pl => pl.Items)

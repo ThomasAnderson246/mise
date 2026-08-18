@@ -12,11 +12,13 @@ namespace Mise.API.Controllers
     {
         private readonly IPrepListService _prepListService;
         private readonly ICurrentUserService _currentUser;
+        private readonly ILogger<PrepListController> _logger;
 
-        public PrepListController(IPrepListService prepListService, ICurrentUserService currentUser)
+        public PrepListController(IPrepListService prepListService, ICurrentUserService currentUser, ILogger<PrepListController> logger)
         {
             _prepListService = prepListService;
             _currentUser = currentUser;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -158,6 +160,7 @@ namespace Mise.API.Controllers
         [RequiresPermission("preplist", "update")]
         public async Task<IActionResult> CompleteItem(Guid id, Guid itemId)
         {
+            _logger.LogInformation("CompleteItem called - PrepListId: {PrepListId}, ItemId: {ItemId}", id, itemId);
             try
             {
                 var prepList = await _prepListService.CompleteItemAsync(

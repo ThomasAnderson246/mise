@@ -9,6 +9,7 @@ using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
+using Microsoft.Extensions.Logging;
 
 namespace Mise.Infrastructure.Services
 {
@@ -18,13 +19,15 @@ namespace Mise.Infrastructure.Services
         private readonly IAuditLogServices _auditLogServices;
         private readonly INotificationService _notificationService;
         private readonly MiseDbContext _context;
+        private readonly ILogger<PrepListService> _logger;
 
-        public PrepListService(IPrepListRepository prepListRepository, IAuditLogServices auditLogServices, INotificationService notification, MiseDbContext context)
+        public PrepListService(IPrepListRepository prepListRepository, IAuditLogServices auditLogServices, INotificationService notification, MiseDbContext context, ILogger<PrepListService> logger)
         {
             _prepListRepository = prepListRepository;
             _auditLogServices = auditLogServices;
             _notificationService = notification;
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<PrepList>> GetAllAsync(Guid tenantId)
@@ -313,14 +316,28 @@ namespace Mise.Infrastructure.Services
             Guid completedBy
             )
         {
-            var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
-                ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+            _logger.LogInformation("CompleteItemAsync started - PrepListId: {PrepListId}, ItemId: {ItemId}", prepListId, itemId);
 
-            
+            var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId);
+            _logger.LogInformation("PrepList loaded: {Found}, Items count: {Count}",
+                prepList != null, prepList?.Items.Count ?? 0);
 
-            var item = prepList.Items.FirstOrDefault(i => i.PrepListItemId == itemId)
-                ?? throw new KeyNotFoundException($"Prep list item {itemId} not found.");
+            var directItem = await _context.PrepListItems
+                        .FirstOrDefaultAsync(i => i.PrepListItemId == itemId);
+            _logger.LogInformation("Direct item lookup: {Found}, Name: {Name}",
+                directItem != null, directItem?.ItemName);
 
+            if (prepList == null)
+                throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+
+            _logger.LogInformation("Items: {Items}",
+                string.Join(", ", prepList.Items.Select(i => $"{i.PrepListItemId}:{i.ItemName}")));
+
+            var item = prepList.Items.FirstOrDefault(i => i.PrepListItemId == itemId);
+            _logger.LogInformation("Item found: {Found}", item != null);
+
+            if (item == null)
+                throw new KeyNotFoundException($"Prep list item {itemId} not found.");
             if (item.IsComplete)
                 throw new InvalidOperationException("Item is already complete.");
 
@@ -331,8 +348,9 @@ namespace Mise.Infrastructure.Services
                 item.CompletedBy = completedBy;
                 item.CompletedAt = DateTime.UtcNow;
 
-                _context.PrepListItems.Update(item);
+                //_context.PrepListItems.Update(item);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("SaveChangesAsync completed successfully");
 
                 await _auditLogServices.LogAsync(
                     tenantId,
@@ -348,8 +366,9 @@ namespace Mise.Infrastructure.Services
                 return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
                     ?? prepList;
             }
-            catch
+            catch (Exception ex) 
             {
+                _logger.LogError("Error in CompleteItemAsync: {Message} | {StackTrace}", ex.Message, ex.StackTrace);
                 await transaction.RollbackAsync();
                 throw;
             }
