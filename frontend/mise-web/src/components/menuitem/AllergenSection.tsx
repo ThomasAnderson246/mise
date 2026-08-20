@@ -38,7 +38,7 @@ export function AllergenSection({
               disabled={resolving}
               className="text-xs h-8 px-3"
             >
-              {resolving ? "Resolving..." : "REsolving allergens"}
+              {resolving ? "Resolving..." : "Resolve allergens"}
             </Button>
             <Button
               variant="outline"

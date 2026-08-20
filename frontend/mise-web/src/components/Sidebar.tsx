@@ -1,6 +1,7 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { useNotifications } from "@/context/NotificationContext";
 
 interface NavItem {
   label: string;
@@ -83,6 +84,7 @@ export function Sidebar() {
   const { slug } = useParams<{ slug: string }>();
   const { hasPermission, user, logout } = useAuth();
   const location = useLocation();
+  const { unreadCount } = useNotifications();
 
   const visibleItems = navItems.filter(
     (item) =>
@@ -117,7 +119,12 @@ export function Sidebar() {
               )}
             >
               <span className="text-base">{item.icon}</span>
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.path === "notifications" && unreadCount > 0 && (
+                <span className="text-xs bg-secondary text-secondary-foreground rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Link>
           );
         })}

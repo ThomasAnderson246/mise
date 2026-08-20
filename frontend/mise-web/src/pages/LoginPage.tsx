@@ -4,12 +4,14 @@ import { getTenantBySlug } from "../api/tenantApi";
 import { getPermissions, Login } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 import type { TenantResponse } from "../api/tenantApi";
+import { useNotifications } from "@/context/NotificationContext";
 
 function LoginPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser, isAuthenticated } = useAuth();
+  const { fetchUnreadCount } = useNotifications();
 
   const [tenant, setTenant] = useState<TenantResponse | null>(null);
   const [email, setEmail] = useState("");
@@ -57,7 +59,6 @@ function LoginPage() {
       });
 
       const permissions = await getPermissions(response.token);
-      console.log("Permissions loaded: ", permissions);
       setUser({
         token: response.token,
         userId: response.userId,
@@ -68,6 +69,8 @@ function LoginPage() {
         role: response.role,
         permissions: permissions,
       });
+      await fetchUnreadCount(response.token);
+
       navigate(`/${slug}/dashboard`, { replace: true });
     } catch {
       setError("Invalid email or password.");
