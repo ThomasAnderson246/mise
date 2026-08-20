@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTimers } from "@/context/TimerContext";
 import { useScaling } from "@/hooks/useScaling";
@@ -14,6 +14,7 @@ export default function CookingModePage() {
   const { slug, recipeId } = useParams<{ slug: string; recipeId: string }>();
   const navigate = useNavigate();
   const { timers } = useTimers();
+  const [searchParams] = useSearchParams();
 
   // state variables
   const [recipe, setRecipe] = useState<RecipeDetail | null>(null);
@@ -29,6 +30,8 @@ export default function CookingModePage() {
   const currentStep = steps[currentStepIndex] ?? null;
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
+  const returnTo = searchParams.get("returnTo");
+  const returnPrepListId = searchParams.get("prepListId");
 
   useEffect(() => {
     if (!user?.token || !recipeId) return;
@@ -77,6 +80,14 @@ export default function CookingModePage() {
     if (!isLastStep) setCurrentStepIndex((prev) => prev + 1);
   }
 
+  function handleExit() {
+    if (returnTo === "prep-list" && returnPrepListId) {
+      navigate(`/${slug}/prep-lists/${returnPrepListId}`);
+    } else {
+      navigate(`/${slug}/recipes/${recipeId}`);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -119,7 +130,7 @@ export default function CookingModePage() {
             {showIngredients ? "Hide ingredients" : "Show ingredients"}
           </button>
           <button
-            onClick={() => navigate(`/${slug}/recipes/${recipeId}`)}
+            onClick={handleExit}
             className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg border border-border"
           >
             Exit
@@ -202,7 +213,7 @@ export default function CookingModePage() {
 
             {isLastStep ? (
               <button
-                onClick={() => navigate(`/${slug}/recipes/${recipeId}`)}
+                onClick={handleExit}
                 className="flex items-center gap-2 px-6 py-4 rounded-xl bg-secondary text-secondary-foreground text-lg font-medium min-w-[120px] justify-center"
               >
                 Done

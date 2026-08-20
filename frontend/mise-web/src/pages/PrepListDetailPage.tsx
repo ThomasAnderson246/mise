@@ -141,6 +141,7 @@ export default function PrepListDetailPage() {
       setPrepList(updated);
       setShowCompleteConfirm(false);
       toast.success("Prep list completed.");
+      navigate(`/${slug}/prep-lists`);
     } catch {
       toast.error(
         "failed to complete prep list. Make sure all items are checked off.",
@@ -344,7 +345,9 @@ export default function PrepListDetailPage() {
             {item.recipeId && item.recipeTitle && (
               <button
                 onClick={() =>
-                  navigate(`/${slug}/recipes/${item.recipeId}/cook`)
+                  navigate(
+                    `/${slug}/recipes/${item.recipeId}/cook?returnTo=prep-list&prepListId=${prepListId}`,
+                  )
                 }
                 className="text-xs text-secondary hover:underline flex-shrink-0"
               >

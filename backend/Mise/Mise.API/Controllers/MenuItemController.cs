@@ -34,7 +34,7 @@ namespace Mise.API.Controllers
         [RequiresPermission("menuitem", "read")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var menuItem = await _menuItemService.GetByIdAsync(_currentUser.TenantId, id);
+            var menuItem = await _menuItemService.GetByIdAsync(id, _currentUser.TenantId);
             if (menuItem == null)
                 return NotFound(ApiResponse<MenuItemResponse>.Fail("Menu item not found."));
             return Ok(ApiResponse<MenuItemResponse>.Ok(MapToResponse(menuItem)));

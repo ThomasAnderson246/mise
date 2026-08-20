@@ -10,6 +10,9 @@ import RecipeEditorPage from "./pages/RecipeEditorPage";
 import CookingModePage from "./pages/CookingModePage";
 import PrepListPage from "./pages/PrepListPage";
 import PrepListDetailPage from "./pages/PrepListDetailPage";
+import MenuItemDetailPage from "./pages/MenuItemDetailPage";
+import MenuItemsPage from "./pages/MenuItemPage";
+import MenuItemEditorPage from "./pages/MenuItemEditorPage";
 
 function SlugRoutes() {
   const { slug } = useParams<{ slug: string }>();
@@ -24,6 +27,16 @@ function SlugRoutes() {
           <Route path="recipes/:recipeId" element={<RecipeDetailPage />} />
           <Route path="recipes" element={<RecipesPage />} />
           <Route path="prep-lists" element={<PrepListPage />} />
+          <Route path="menu-items/new" element={<MenuItemEditorPage />} />
+          <Route
+            path="menu-items/:menuItemId/edit"
+            element={<MenuItemEditorPage />}
+          />
+          <Route
+            path="menu-items/:menuItemId"
+            element={<MenuItemDetailPage />}
+          />
+          <Route path="menu-items" element={<MenuItemsPage />} />
           <Route
             path="prep-lists/:prepListId"
             element={<PrepListDetailPage />}
