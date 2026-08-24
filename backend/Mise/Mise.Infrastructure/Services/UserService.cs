@@ -97,7 +97,10 @@ namespace Mise.Infrastructure.Services
                     user.Status
                 }));
 
-            return (user, tempPassword);
+            var refreshed = await _userRepository.GetByIdAndTenantAsync(user.UserId, tenantId)
+                ?? user;
+
+            return (refreshed, tempPassword);
         }
 
         public async Task<User> UpdateAsync(

@@ -269,5 +269,13 @@ namespace Mise.Infrastructure.Services
                 throw;
             }
         }
+
+        public async Task<IEnumerable<Permission>> GetAllPermissionsAsync()
+        {
+            return await _context.Permissions
+                .OrderBy(p => p.Resource)
+                .ThenBy(p => p.Action)
+                .ToListAsync();
+        }
     }
 }

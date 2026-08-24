@@ -60,7 +60,8 @@ namespace Mise.Infrastructure.Services
                 .FirstOrDefaultAsync(u =>
                 u.Email == email &&
                 u.TenantId == tenantId &&
-                u.Status == "active");
+                (u.Status == "active" ||
+                u.Status == "pending"));
 
             if (user == null) return null;
             //if (user.PasswordHash != password) return null;

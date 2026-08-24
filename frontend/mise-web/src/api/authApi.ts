@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { BASE_URL } from './config'
+import { BASE_URL, authHeaders } from './config'
 
 
 export interface LoginRequest {
@@ -27,11 +27,6 @@ export async function Login(request: LoginRequest): Promise<LoginResponse>{
 }
 
 export async function getPermissions(token: string): Promise<string[]> {
-    const response = await axios.get(`${BASE_URL}/api/auth/permissions`, 
-        {withCredentials: true,
-        headers:{
-            Authorization: `Bearer ${token}`
-        }
-        })
+    const response = await axios.get(`${BASE_URL}/api/auth/permissions`, authHeaders(token))
     return response.data.data
 }

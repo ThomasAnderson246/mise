@@ -71,5 +71,54 @@ export default function NotificationsPage() {
     );
   }
 
-  return <div className="max-w-2xl"></div>;
+  return (
+    <div className="max-w-2xl">
+      <PageHeader
+        title="Notifications"
+        subtitle={unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+        action={
+          unreadCount > 0 ? (
+            <Button variant="outline" onCanPlay={handleMarkAllAsRead}>
+              Mark all as read
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <div className="flex gap-2 mb-6">
+        {(["unread", "all"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`text-sm px-4 py-2 rounded-lg transition-colors ${
+              filter === f
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-foreground border-border hover:border-primary"
+            }`}
+          >
+            {f === "unread" ? `Unread (${unreadCount})` : "All"}
+          </button>
+        ))}
+      </div>
+      {filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-muted-foreground">
+            {filter === "unread"
+              ? "No unread notifications"
+              : "No notifications yet."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((n) => (
+            <NotificationCard
+              key={n.notificationId}
+              notification={n}
+              onMarkAsRead={handleMarkAsRead}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

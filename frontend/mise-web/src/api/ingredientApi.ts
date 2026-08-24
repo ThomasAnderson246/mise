@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BASE_URL } from "./config";
+import { BASE_URL, authHeaders } from "./config";
 
 export interface IngredientItem{
     ingredientId: string
@@ -10,20 +10,12 @@ export interface IngredientItem{
 }
 
 export async function getIngredients(token: string): Promise<IngredientItem[]>{
-    const response = await axios.get(`${BASE_URL}/api/ingredient`, {
-        withCredentials: true,
-        headers: {Authorization: `Bearer ${token}`}
-    })
-
+    const response = await axios.get(`${BASE_URL}/api/ingredient`, authHeaders(token))
     return response.data.data
 }
 
 export async function searchIngredients(token: string, term: string): Promise<IngredientItem[]>{
-    const response = await axios.get(`${BASE_URL}/api/ingredient/search?term=${encodeURIComponent(term)}`, {
-        withCredentials: true,
-        headers:{ Authorization: `Bearer ${token}`}
-    })
-
+    const response = await axios.get(`${BASE_URL}/api/ingredient/search?term=${encodeURIComponent(term)}`, authHeaders(token))
     return response.data.data
 }
 
@@ -34,10 +26,6 @@ export async function createIngredient(token: string, request: {
     isNonConvertible: boolean
     allergenIds: string[]
 }): Promise<IngredientItem> {
-    const response = await axios.post(`${BASE_URL}/api/ingredient`, request, {
-        withCredentials: true,
-        headers: {Authorization: `Bearer ${token}`}
-    })
-
+    const response = await axios.post(`${BASE_URL}/api/ingredient`, request, authHeaders(token))
     return response.data.data
 }

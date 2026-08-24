@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,5 +18,6 @@ namespace Mise.Application.Interfaces
         Task DeleteAsync(Guid roleId, Guid tenantId, Guid performedBy);
         Task AssignPermissionAsync(Guid roleId, Guid permissionsId, Guid tenantId, Guid performedBy);
         Task RemovePermissionAsync(Guid roleId, Guid permissionsId, Guid tenantId, Guid performedBy);
+        Task<IEnumerable<Permission>> GetAllPermissionsAsync();
     }
 }

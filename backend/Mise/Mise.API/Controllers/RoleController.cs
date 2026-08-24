@@ -138,6 +138,22 @@ namespace Mise.API.Controllers
             }
         }
 
+        [HttpGet("/api/permission")]
+        [RequiresPermission("user", "manage")]
+        public async Task<IActionResult> GetAllPermissions()
+        {
+            var permissions = await _roleService.GetAllPermissionsAsync();
+            return Ok(ApiResponse<IEnumerable<object>>.Ok(
+                permissions.Select(p => new
+                {
+                    PermissionsId = p.PermissionId,
+                    Name = p.Name,
+                    Resource = p.Resource,
+                    Action = p.Action,
+                    Description = p.Description
+                })));
+        }
+
         private static RoleResponse MapToResponse(Role r) => new()
         {
             RoleId = r.RoleId,
