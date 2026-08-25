@@ -30,10 +30,12 @@ export async function getRoles(token: string): Promise<Role[]>{
 
 export async function getAllPermissions(token: string): Promise<Permission[]> {
     const response = await axios.get(`${BASE_URL}/api/permission`, authHeaders(token))
+    console.log('Permissions response:', response.data)
     return response.data.data
 }
 
 export async function addPermissionToRole(token: string, roleId: string, permissionId: string): Promise<void>{
+    console.log('Adding permission:', permissionId, 'to role:', roleId)
     await axios.post(`${BASE_URL}/api/role/${roleId}/permissions`, {permissionId}, authHeaders(token))
 }
 

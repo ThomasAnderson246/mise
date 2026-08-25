@@ -8,6 +8,6 @@ namespace Mise.Application.DTOs
 {
     public class RolePermissionRequest
     {
-        public Guid PermissionsId { get; set; }
+        public Guid PermissionId { get; set; }
     }
 }

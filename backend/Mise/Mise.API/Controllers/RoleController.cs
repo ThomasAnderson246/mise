@@ -107,7 +107,7 @@ namespace Mise.API.Controllers
             try
             {
                 await _roleService.AssignPermissionAsync(
-                    id, request.PermissionsId, _currentUser.TenantId, _currentUser.UserId);
+                    id, request.PermissionId, _currentUser.TenantId, _currentUser.UserId);
 
                 return Ok(ApiResponse<string>.Ok("Permission assigned.", "Permission assigned to role."));
             }
@@ -160,9 +160,15 @@ namespace Mise.API.Controllers
             TenantId = r.TenantId,
             Name = r.Name,
             IsSystemRole = r.IsSystemRole,
-            Permissions = r.RolePermissions.Select(rp => rp.Permission.Name).ToList(),
+            Permissions = r.RolePermissions.Select(rp => new RolePermissionResponse
+            {
+                PermissionId = rp.Permission.PermissionId,
+                Name = rp.Permission.Name,
+                Resource = rp.Permission.Resource,
+                Action = rp.Permission.Action
+            }).ToList(),
             CreatedAt = r.CreatedAt,
-            UpdatedAt = r.UpdatedAt,
+            UpdatedAt = r.UpdatedAt
         };
     }
 }
