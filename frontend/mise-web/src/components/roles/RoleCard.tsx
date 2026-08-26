@@ -15,6 +15,7 @@ export function RoleCard({
   onAddPermission,
   onRemovePermission,
 }: RoleCardProps) {
+  console.log("Rolecard allpermissions: ", allPermissions.length);
   const [expanded, setExpanded] = useState(false);
   const [adding, setAdding] = useState(false);
   const [selectedPermissionId, setSelectedPermissionId] = useState("");

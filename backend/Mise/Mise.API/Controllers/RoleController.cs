@@ -146,7 +146,7 @@ namespace Mise.API.Controllers
             return Ok(ApiResponse<IEnumerable<object>>.Ok(
                 permissions.Select(p => new
                 {
-                    PermissionsId = p.PermissionId,
+                    PermissionId = p.PermissionId,
                     Name = p.Name,
                     Resource = p.Resource,
                     Action = p.Action,
