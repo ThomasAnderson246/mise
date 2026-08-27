@@ -25,8 +25,8 @@ const navItems: NavItem[] = [
     permission: { resource: "preplist", action: "read" },
   },
   {
-    label: "Ingredients",
-    path: "ingredients",
+    label: "Systems Page",
+    path: "system",
     icon: "",
     permission: { resource: "ingredient", action: "read" },
   },
@@ -36,24 +36,7 @@ const navItems: NavItem[] = [
     icon: "",
     permission: { resource: "menuitem", action: "read" },
   },
-  {
-    label: "Categories",
-    path: "categories",
-    icon: "",
-    permission: { resource: "category", action: "read" },
-  },
-  {
-    label: "Allergens",
-    path: "allergens",
-    icon: "",
-    permission: { resource: "allergen", action: "read" },
-  },
-  {
-    label: "Unit Types",
-    path: "units",
-    icon: "",
-    permission: { resource: "unit", action: "read" },
-  },
+
   {
     label: "Users",
     path: "users",

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { searchIngredients, createIngredient } from "@/api/ingredientApi";
+import { searchIngredients } from "@/api/ingredientApi";
 import { Button } from "../ui/button";
-import { toast } from "sonner";
-import axios from "axios";
+import { NewIngredientForm } from "./NewIngredientForm";
 import type { RecipeIngredient } from "@/api/recipeApi";
 import type { IngredientItem } from "@/api/ingredientApi";
 import type { UnitTypeItem } from "@/api/unitTypeApi";
@@ -32,11 +31,7 @@ export function IngredientSearch({
   const [unitTypeId, setUnitTypeId] = useState("");
 
   const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newCategory, setNewCategory] = useState("");
-  const [newUnitTypeId, setNewUnitTypeId] = useState("");
-  const [newIsNonConvertible, setNewIsNonConvertible] = useState(false);
-  const [saving, setSaving] = useState(false);
+  //const [newName, setNewName] = useState("");
 
   useEffect(() => {
     if (!user?.token || ingredientSearch.length < 2) {
@@ -89,97 +84,19 @@ export function IngredientSearch({
     setUnitTypeId("");
   }
 
-  async function handleCreateIngredient() {
-    if (!user?.token || !newName.trim()) return;
-    setSaving(true);
-
-    try {
-      const created = await createIngredient(user.token, {
-        name: newName,
-        category: newCategory || null,
-        defaultUnitTypeId: newUnitTypeId || null,
-        isNonConvertible: newIsNonConvertible,
-        allergenIds: [],
-      });
-
-      setSelectedIngredient(created);
-      setIngredientSearch(created.name);
-      setUnitTypeId(created.defaultUnitTypeId ?? "");
-      setShowNewIngredientForm(false);
-      setNewName("");
-      setNewCategory("");
-      setNewUnitTypeId("");
-      setNewIsNonConvertible(false);
-      toast.info(
-        `${created.name} created. Remember to tag allergens in ingredient management.`,
-      );
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err) && err.response?.data?.errors?.[0]) {
-        toast.error(err.response.data.errors[0]);
-      } else {
-        toast.error("Failed to create ingredient.");
-      }
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (showNewIngredientForm) {
-    return (
-      <div className="bg-card rounded-lg p-4 border border-border space-y-3">
-        <p className="text-sm font-medium text-foreground">
-          Create new ingredient
-        </p>
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder="Ingredient name"
-          className="2-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <input
-          type="text"
-          value={newCategory}
-          onChange={(e) => setNewCategory(e.target.value)}
-          placeholder="Category (optional)"
-          className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
-        <select
-          value={newUnitTypeId}
-          onChange={(e) => setNewUnitTypeId(e.target.value)}
-          className="2-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="">No default unit</option>
-          {unitTypes.map((ut) => (
-            <option key={ut.unitTypeId} value={ut.unitTypeId}>
-              {ut.name} ({ut.abbreviation})
-            </option>
-          ))}
-        </select>
-        <label className="flex items-center gap-2 text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={newIsNonConvertible}
-            onChange={(e) => setNewIsNonConvertible(e.target.checked)}
-          />
-          Non-convertible unit
-        </label>
-        <div className="flex gap-2">
-          <Button
-            onClick={handleCreateIngredient}
-            disabled={saving || !newName.trim()}
-            className="bg-primary text-primary-foreground"
-          >
-            Create ingredient
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setShowNewIngredientForm(false)}
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
+  {
+    showNewIngredientForm && (
+      <NewIngredientForm
+        unitTypes={unitTypes}
+        initialName={ingredientSearch}
+        onCreated={(created) => {
+          setSelectedIngredient(created);
+          setIngredientSearch(created.name);
+          setUnitTypeId(created.defaultUnitTypeId ?? "");
+          setShowNewIngredientForm(false);
+        }}
+        onCancel={() => setShowNewIngredientForm(false)}
+      />
     );
   }
 
@@ -216,7 +133,6 @@ export function IngredientSearch({
                 ))}
                 <button
                   onClick={() => {
-                    setNewName(ingredientSearch);
                     setShowNewIngredientForm(true);
                     setShowDropdown(false);
                   }}
@@ -228,7 +144,6 @@ export function IngredientSearch({
             ) : (
               <button
                 onClick={() => {
-                  setNewName(ingredientSearch);
                   setShowNewIngredientForm(true);
                   setShowDropdown(false);
                 }}

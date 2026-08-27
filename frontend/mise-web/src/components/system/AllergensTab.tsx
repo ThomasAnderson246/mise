@@ -161,6 +161,7 @@ export function AllergensTab() {
                 checked={isMajor}
                 onChange={(e) => setIsMajor(e.target.checked)}
               />
+              Major allergen
             </label>
             <div className="flex gap-2">
               <Button

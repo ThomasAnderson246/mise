@@ -104,7 +104,7 @@ namespace Mise.Infrastructure.Services
             {
                 ingredient.Name,
                 ingredient.Category,
-                ingredient.DefaultUnitType,
+                ingredient.DefaultUnitTypeId,
                 ingredient.IsNonConvertible
             });
 
@@ -136,7 +136,7 @@ namespace Mise.Infrastructure.Services
             {
                 ingredient.Name,
                 ingredient.Category,
-                ingredient.DefaultUnitType,
+                ingredient.DefaultUnitTypeId,
                 ingredient.IsNonConvertible
             });
 

@@ -16,6 +16,8 @@ import MenuItemEditorPage from "./pages/MenuItemEditorPage";
 import NotificationsPage from "./pages/NotificationPage";
 import UsersPage from "./pages/UsersPage";
 import RolesPage from "./pages/RolePage";
+import SystemPage from "./pages/SystemPage";
+import AuditLogPage from "./pages/AuditLogPage";
 // j5CG3NyHS2zG
 
 function SlugRoutes() {
@@ -48,6 +50,8 @@ function SlugRoutes() {
           />
           <Route path="users" element={<UsersPage />} />
           <Route path="roles" element={<RolesPage />} />
+          <Route path="system" element={<SystemPage />} />
+          <Route path="audit" element={<AuditLogPage />} />
         </Route>
         <Route path="recipes/:recipeId/cook" element={<CookingModePage />} />
       </Routes>

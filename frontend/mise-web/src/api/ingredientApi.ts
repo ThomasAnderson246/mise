@@ -61,11 +61,12 @@ export async function deleteIngredient(token: string, ingredientId: string): Pro
     await axios.delete(`${BASE_URL}/api/ingredient/${ingredientId}`, authHeaders(token))
 }
 
-export async function addAllergenToIngredient(token: string, ingredientId: string, allergenId: string): Promise<IngredientItem>{
-    const current = await getIngredientById(token,ingredientId)
+export async function addAllergenToIngredient(token: string, ingredientId: string, allergenId: string): Promise<IngredientItem> {
+    const current = await getIngredientById(token, ingredientId)
     const existingAllergenIds = current.allergens.map(a => a.allergenId)
-
-    const response = await axios.put(`${BASE_URL}/api/ingredient/${ingredientId}`, {allergenIds: [...existingAllergenIds, allergenId]}, authHeaders(token))
+    const payload = { allergenIds: [...existingAllergenIds, allergenId] }
+    console.log('Adding allergen payload:', JSON.stringify(payload))
+    const response = await axios.put(`${BASE_URL}/api/ingredient/${ingredientId}`, payload, authHeaders(token))
     return response.data.data
 }
 
