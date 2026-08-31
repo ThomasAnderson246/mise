@@ -7,6 +7,7 @@ export interface CreateRecipeRequest{
     description: string | null
     scalingMode: string
     categoryIds: string[]
+    isPortion: boolean
 }
 
 export interface UpdateRecipeRequest {
@@ -83,6 +84,7 @@ export interface RecipeDetail {
     status: string
     scalingMode: string
     tenantId: string
+    isPortion: boolean
     createdAt: string
     updatedAt: string
     recipeCategories: {

@@ -131,14 +131,7 @@ export default function RecipeDetailPage() {
     }
   }
   const version = recipe?.currentVersion ?? null;
-  console.log("Scaling mode:", recipe?.scalingMode);
-  console.log(
-    "Version ingredients:",
-    version?.ingredients.map((i) => ({
-      name: i.ingredientName,
-      isRatioAnchor: i.isRatioAnchor,
-    })),
-  );
+  const isPortion = recipe?.isPortion ?? false;
   const scaling = useScaling(version, recipe?.scalingMode ?? "multiplier");
 
   if (loading) {
@@ -164,7 +157,8 @@ export default function RecipeDetailPage() {
         subtitle={recipe.description ?? undefined}
         action={
           <div className="flex gap-2">
-            {hasPermission("recipe", "read") &&
+            {!isPortion &&
+              hasPermission("recipe", "read") &&
               recipe.status === "published" && (
                 <Button
                   onClick={() => navigate(`/${slug}/recipes/${recipeId}/cook`)}
@@ -245,14 +239,16 @@ export default function RecipeDetailPage() {
               Ingredients
             </h2>
 
-            <ScalingControl
-              isRatioMode={scaling.isRatioMode}
-              scalingFactor={scaling.scalingFactor}
-              onScalingFactorChange={scaling.setScalingFactor}
-              anchorIngredient={scaling.anchorIngredient}
-              anchorQuantity={scaling.anchorQuantity}
-              onAnchorQuantityChange={scaling.setAnchorQuantity}
-            />
+            {!isPortion && (
+              <ScalingControl
+                isRatioMode={scaling.isRatioMode}
+                scalingFactor={scaling.scalingFactor}
+                onScalingFactorChange={scaling.setScalingFactor}
+                anchorIngredient={scaling.anchorIngredient}
+                anchorQuantity={scaling.anchorQuantity}
+                onAnchorQuantityChange={scaling.setAnchorQuantity}
+              />
+            )}
 
             {version.recipeIngredientGroups.length === 0 &&
             version.ingredients.length === 0 ? (
@@ -319,46 +315,48 @@ export default function RecipeDetailPage() {
             )}
           </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
-              Method
-            </h2>
-            {version.steps.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No steps added yet.
-              </p>
-            ) : (
-              <ol className="space-y-4">
-                {version.steps.map((step) => (
-                  <li key={step.stepId} className="flex gap-4">
-                    <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                      {step.stepNumber}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-sm text-foreground">
-                        {step.instruction}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1">
-                        {step.hasTimer && step.timerDuration && (
-                          <RecipeTimer
-                            durationMinutes={step.timerDuration}
-                            stepId={step.stepId}
-                            recipeTitle={recipe.title}
-                            instruction={step.instruction}
-                          />
-                        )}
-                        {step.isAsync && (
-                          <span className="text-xs text-secondary">
-                            ↕ Async
-                          </span>
-                        )}
+          {!isPortion && (
+            <section>
+              <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
+                Method
+              </h2>
+              {version.steps.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No steps added yet.
+                </p>
+              ) : (
+                <ol className="space-y-4">
+                  {version.steps.map((step) => (
+                    <li key={step.stepId} className="flex gap-4">
+                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {step.stepNumber}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-sm text-foreground">
+                          {step.instruction}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          {step.hasTimer && step.timerDuration && (
+                            <RecipeTimer
+                              durationMinutes={step.timerDuration}
+                              stepId={step.stepId}
+                              recipeTitle={recipe.title}
+                              instruction={step.instruction}
+                            />
+                          )}
+                          {step.isAsync && (
+                            <span className="text-xs text-secondary">
+                              ↕ Async
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          )}
 
           {subRecipes.length > 0 && (
             <section>
@@ -392,7 +390,7 @@ export default function RecipeDetailPage() {
           )}
         </div>
       )}
-      {versionHistory.length > 1 && (
+      {!isPortion && versionHistory.length > 1 && (
         <section>
           <button
             onClick={() => setShowVersionHistory((prev) => !prev)}

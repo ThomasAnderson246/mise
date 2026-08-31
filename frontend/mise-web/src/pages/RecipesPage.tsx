@@ -19,6 +19,7 @@ export default function RecipesPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [view, setView] = useState<"recipes" | "portions">("recipes");
 
   useEffect(() => {
     if (!user?.token) return;
@@ -45,7 +46,10 @@ export default function RecipesPage() {
       hasPermission("recipe", "create") ||
       hasPermission("recipe", "update") ||
       r.status === "published";
-    return matchesCategory && matchesSearch && matchesDraftFilter;
+    const matchesView = view === "portions" ? r.isPortion : !r.isPortion;
+    return (
+      matchesCategory && matchesSearch && matchesDraftFilter && matchesView
+    );
   });
 
   function getStatusColor(status: string) {
@@ -71,58 +75,107 @@ export default function RecipesPage() {
     <div>
       <PageHeader
         title="Recipes"
-        subtitle={`${recipes.length} recipe${recipes.length !== 1 ? "s" : ""} in your book`}
+        subtitle={
+          view === "portions"
+            ? `${filtered.length} portion size${filtered.length} !== 1 ? 's' : ''}`
+            : `${recipes.filter((r) => !r.isPortion).length} recipe${recipes.filter((r) => !r.isPortion).length !== 1 ? "s" : ""} in your book`
+        }
         action={
           hasPermission("recipe", "create") ? (
             <Button
               onClick={() => navigate(`/${slug}/recipes/new`)}
-              //className="bg-primary text-primary-foreground hover:bg-primary/90"
-              variant="default"
+              className="bg-primary text-primary-foreground"
             >
-              New Recipe
+              {view === "portions" ? "New Portion" : "New Recipe"}
             </Button>
           ) : undefined
         }
       />
 
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search recipes..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-80 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-        />
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="all">All Categories</option>
-          <option value="uncategorized">Uncategorized</option>
-          {categories.map((cat) => (
-            <option key={cat.categoryId} value={cat.categoryId}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
+      <div className="flex gap-2 mb-6">
+        {(["recipes", "portions"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => {
+              setView(v);
+              setCategoryFilter("all");
+              setSearch("");
+            }}
+            className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
+              view === v
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card text-foreground border-border hover:border-primary"
+            }`}
+          >
+            {v === "recipes" ? "Recipes" : "Portion Sizes"}
+          </button>
+        ))}
       </div>
+
+      {view === "recipes" && (
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search recipes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
+          />
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option value="all">All Categories</option>
+            <option value="uncategorized">Uncategorized</option>
+            {categories.map((cat) => (
+              <option key={cat.categoryId} value={cat.categoryId}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {view === "portions" && (
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search portions..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80 px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
+          />
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <EmptyState
-          title={search ? "No recipes match your search" : "No recipes yet"}
+          title={
+            search
+              ? `No ${view === "portions" ? "portions" : "recipes"} match your search`
+              : view === "portions"
+                ? "No portion sizes yet"
+                : "No recipes yet"
+          }
           description={
             search
               ? "Try a different search term."
-              : "Add your first recipe to get started."
+              : view === "portions"
+                ? "Add your first portion size to get started."
+                : "Add your first recipe to get started."
           }
           action={
             hasPermission("recipe", "create") && !search ? (
               <Button
-                onClick={() => navigate(`/${slug}/recipes/new`)}
+                onClick={() =>
+                  navigate(
+                    `/${slug}/recipes/new?isPortion=${view === "portions"}`,
+                  )
+                }
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                New Recipe
+                {view === "portions" ? "New Portion" : "New Recipe"}
               </Button>
             ) : undefined
           }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import {
   getRecipeById,
@@ -28,6 +28,7 @@ import type { UnitTypeItem } from "@/api/unitTypeApi";
 export default function RecipeEditorPage() {
   const { user } = useAuth();
   const { slug, recipeId } = useParams<{ slug: string; recipeId?: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const isEditMode = !!recipeId;
 
@@ -35,6 +36,9 @@ export default function RecipeEditorPage() {
   const [description, setDescription] = useState("");
   const [scalingMode, setScalingMode] = useState("multiplier");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isPortion, setIsPortion] = useState(
+    searchParams.get("isPortion") === "true",
+  );
 
   const [currentRecipeId, setCurrentRecipeId] = useState<string | null>(
     recipeId ?? null,
@@ -77,6 +81,7 @@ export default function RecipeEditorPage() {
           setTitle(recipeData.title);
           setDescription(recipeData.description ?? "");
           setScalingMode(recipeData.scalingMode);
+          setIsPortion(recipeData.isPortion ?? false);
           setSelectedCategories(
             recipeData.recipeCategories.map((rc) => rc.categoryId),
           );
@@ -127,6 +132,7 @@ export default function RecipeEditorPage() {
           description: description || null,
           scalingMode,
           categoryIds: selectedCategories,
+          isPortion,
         });
         setCurrentRecipeId(created.recipeId);
 
@@ -257,7 +263,15 @@ export default function RecipeEditorPage() {
   return (
     <div className="max-w-3xl">
       <PageHeader
-        title={isEditMode ? "Edit Recipe" : "New Recipe"}
+        title={
+          isEditMode
+            ? isPortion
+              ? "Edit Portion"
+              : "Edit Recipe"
+            : isPortion
+              ? "New Portion"
+              : "New Recipe"
+        }
         action={
           <div className="flex gap-2">
             {isPublishedRecipe && (
@@ -357,40 +371,59 @@ export default function RecipeEditorPage() {
             className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">
-            Scaling mode
-          </label>
-          <select
-            value={scalingMode}
-            onChange={(e) => setScalingMode(e.target.value)}
-            className={selectClass}
-          >
-            <option value="multiplier">Multiplier</option>
-            <option value="ratio">Ratio</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Categories
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.categoryId}
-                onClick={() => toggleCategory(cat.categoryId)}
-                className={`text-xs px-3 py-1.6 rounded-full border transition-colors ${
-                  selectedCategories.includes(cat.categoryId)
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card text-foreground border-border hover:border-primary"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+        {!isEditMode && (
+          <div>
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={isPortion}
+                onChange={(e) => setIsPortion(e.target.checked)}
+              />
+              This is a portion size
+            </label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Portoin sizes appear in the Portion Sizes tab and can be linked to
+              prep lists.
+            </p>
           </div>
-        </div>
+        )}
+        {!isPortion && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Scaling mode
+              </label>
+              <select
+                value={scalingMode}
+                onChange={(e) => setScalingMode(e.target.value)}
+                className={selectClass}
+              >
+                <option value="multiplier">Multiplier</option>
+                <option value="ratio">Ratio</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Categories
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.categoryId}
+                    onClick={() => toggleCategory(cat.categoryId)}
+                    className={`text-xs px-3 py-1.6 rounded-full border transition-colors ${
+                      selectedCategories.includes(cat.categoryId)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card text-foreground border-border hover:border-primary"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {currentRecipeId && (
@@ -410,7 +443,7 @@ export default function RecipeEditorPage() {
         </div>
       )}
 
-      {currentRecipeId && (
+      {currentRecipeId && !isPortion && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
             Method
