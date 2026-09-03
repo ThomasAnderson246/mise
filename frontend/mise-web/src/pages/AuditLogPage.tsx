@@ -4,7 +4,7 @@ import { getAuditLogs } from "@/api/auditLogApi";
 import { getUsers } from "@/api/userApi";
 import { PageHeader } from "@/components/PageHeader";
 import { AuditLogFilters } from "@/components/audit/AuditLogFilters";
-import { AuditLogEntry } from "@/components/audit/AuditLogentry";
+import { AuditLogEntry } from "@/components/audit/AuditLogEntry";
 import { getActionGroup, getFromDate } from "@/config/auditLog";
 import { toast } from "sonner";
 import type { AuditLogEntry as AuditLogEntryType } from "@/api/auditLogApi";
