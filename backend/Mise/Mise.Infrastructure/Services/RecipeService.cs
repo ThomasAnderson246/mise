@@ -54,6 +54,7 @@ namespace Mise.Infrastructure.Services
                 Description = request.Description,
                 Status = "draft",
                 ScalingMode = request.ScalingMode,
+                IsPortion = request.IsPortion,
                 CreatedBy = createdBy,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,

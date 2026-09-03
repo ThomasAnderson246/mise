@@ -62,6 +62,7 @@ export function IngredientSearch({
 
   function handleAdd() {
     if (!selectedIngredient || !quantity) return;
+    console.log("handleAdd called", selectedIngredient, quantity);
 
     const newIngredient: RecipeIngredient = {
       recipeIngredientId: crypto.randomUUID(),
@@ -120,7 +121,10 @@ export function IngredientSearch({
                 {ingredientResults.map((ing) => (
                   <button
                     key={ing.ingredientId}
-                    onClick={() => handleSelectedIngredient(ing)}
+                    onClick={() => {
+                      handleSelectedIngredient(ing);
+                      console.log("Click");
+                    }}
                     className="w-full text-left px-4 py-2 text-sm text-foreground hvoer:bg-muted"
                   >
                     {ing.name}
@@ -133,6 +137,7 @@ export function IngredientSearch({
                 ))}
                 <button
                   onClick={() => {
+                    console.log("Click");
                     setShowNewIngredientForm(true);
                     setShowDropdown(false);
                   }}
@@ -144,6 +149,7 @@ export function IngredientSearch({
             ) : (
               <button
                 onClick={() => {
+                  console.log("Click!");
                   setShowNewIngredientForm(true);
                   setShowDropdown(false);
                 }}
@@ -155,6 +161,20 @@ export function IngredientSearch({
           </div>
         )}
       </div>
+
+      {showNewIngredientForm && (
+        <NewIngredientForm
+          unitTypes={unitTypes}
+          initialName={ingredientSearch}
+          onCreated={(created) => {
+            setSelectedIngredient(created);
+            setIngredientSearch(created.name);
+            setUnitTypeId(created.defaultUnitTypeId ?? "");
+            setShowNewIngredientForm(false);
+          }}
+          onCancel={() => setShowNewIngredientForm(false)}
+        />
+      )}
 
       {selectedIngredient && (
         <div className="flex gap-2">

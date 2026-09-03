@@ -22,6 +22,7 @@ namespace Mise.Infrastructure.Persistence.Repositories
                 .Include(r => r.RecipeCategories)
                     .ThenInclude(rc => rc.Category)
                 .Include(r => r.CurrentVersion)
+                    .ThenInclude(v => v.Ingredients)
                 .OrderBy(r => r.Title)
                 .ToListAsync();
         }

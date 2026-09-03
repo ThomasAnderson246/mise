@@ -50,6 +50,7 @@ namespace Mise.API.Controllers
                 Status = r.Status,
                 ScalingMode = r.ScalingMode,
                 HasActiveDraft = draftRecipeIds.Contains(r.RecipeId),
+                IngredientCount = r.CurrentVersion?.Ingredients.Count ?? 0,
                 IsPortion = r.IsPortion,
                 TenantId = r.TenantId,
                 CreatedAt = r.CreatedAt,
@@ -81,6 +82,7 @@ namespace Mise.API.Controllers
                 Status = recipe.Status,
                 ScalingMode = recipe.ScalingMode,
                 TenantId = recipe.TenantId,
+                IsPortion = recipe.IsPortion,
                 CreatedAt = recipe.CreatedAt,
                 UpdatedAt = recipe.UpdatedAt,
                 RecipeCategories = recipe.RecipeCategories.Select(rc => new RecipeCategoryResponse

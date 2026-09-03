@@ -15,6 +15,7 @@ namespace Mise.Application.DTOs
         public string ScalingMode {  get; set; } = string.Empty;
         public bool IsPortion { get; set; }
         public bool HasActiveDraft { get; set; }
+        public int IngredientCount { get; set; }
         public Guid TenantId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

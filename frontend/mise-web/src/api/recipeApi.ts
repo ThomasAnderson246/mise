@@ -35,6 +35,7 @@ export interface RecipeItem{
     updatedAt: string
     hasActiveDraft: boolean
     isPortion: boolean
+    ingredientCount: number
     recipeCategories: {
         categoryId: string
         name: string

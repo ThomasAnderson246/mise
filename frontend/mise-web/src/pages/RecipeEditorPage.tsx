@@ -77,7 +77,7 @@ export default function RecipeEditorPage() {
 
         if (isEditMode && recipeId) {
           const recipeData = await getRecipeById(user!.token, recipeId);
-
+          console.log("isPortion from API:", recipeData.isPortion);
           setTitle(recipeData.title);
           setDescription(recipeData.description ?? "");
           setScalingMode(recipeData.scalingMode);
@@ -207,6 +207,7 @@ export default function RecipeEditorPage() {
   }
 
   function handleIngredientAdded(ingredient: RecipeIngredient) {
+    console.log("Ingredient added:", ingredient);
     setLocalIngredients((prev) => [...prev, ingredient]);
     setHasUnsavedChanges(true);
   }
@@ -250,6 +251,44 @@ export default function RecipeEditorPage() {
     } finally {
       setPublishing(false);
     }
+  }
+
+  function handleIngredientUpdated(
+    recipeIngredientId: string,
+    quantity: number,
+    unitTypeId: string | null,
+  ) {
+    setLocalIngredients((prev) =>
+      prev.map((ing) =>
+        ing.recipeIngredientId === recipeIngredientId
+          ? {
+              ...ing,
+              quantity,
+              unitTypeId,
+              unitName:
+                unitTypes.find((u) => u.unitTypeId === unitTypeId)?.name ??
+                null,
+            }
+          : ing,
+      ),
+    );
+    setHasUnsavedChanges(true);
+  }
+
+  function handleStepUpdated(
+    stepId: string,
+    instruction: string,
+    hasTimer: boolean,
+    timerDuration: number | null,
+  ) {
+    setLocalSteps((prev) =>
+      prev.map((step) =>
+        step.stepId === stepId
+          ? { ...step, instruction, hasTimer, timerDuration }
+          : step,
+      ),
+    );
+    setHasUnsavedChanges(true);
   }
 
   if (loading) {
@@ -433,7 +472,9 @@ export default function RecipeEditorPage() {
           </h2>
           <IngredientList
             ingredients={localIngredients}
+            unitTypes={unitTypes}
             onRemove={handleIngredientRemoved}
+            onUpdate={handleIngredientUpdated}
           />
           <IngredientSearch
             unitTypes={unitTypes}
@@ -448,7 +489,11 @@ export default function RecipeEditorPage() {
           <h2 className="text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border">
             Method
           </h2>
-          <StepList steps={localSteps} onRemove={handleStepRemoved} />
+          <StepList
+            steps={localSteps}
+            onRemove={handleStepRemoved}
+            onUpdate={handleStepUpdated}
+          />
           <StepForm
             onStepAdded={handleStepAdded}
             currentStepCount={localSteps.length}

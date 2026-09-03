@@ -182,40 +182,50 @@ export default function RecipesPage() {
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((recipe) => (
-            <div
-              key={recipe.recipeId}
-              onClick={() => navigate(`/${slug}/recipes/${recipe.recipeId}`)}
-              className="bg-card rounded-lg p-4 border border-border cursor-pointer hover:border-primary transition-colors"
-            >
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <h3 className="font-medium text-foreground text-sm leading-snug">
-                  {recipe.title}
-                </h3>
-                {recipe.hasActiveDraft && (
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-100 text-yellow-800">
-                    draft pending
-                  </span>
-                )}
+          {filtered.map((recipe) => {
+            console.log("view:", view, "isPortion:", recipe.isPortion);
+            return (
+              <div
+                key={recipe.recipeId}
+                onClick={() => navigate(`/${slug}/recipes/${recipe.recipeId}`)}
+                className="bg-card rounded-lg p-4 border border-border cursor-pointer hover:border-primary transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-medium text-foreground text-sm leading-snug">
+                    {recipe.title}
+                  </h3>
+                  {recipe.hasActiveDraft && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-100 text-yellow-800">
+                      draft pending
+                    </span>
+                  )}
 
-                {recipe.status === "published" && (
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${getStatusColor(recipe.status)}`}
-                  >
-                    {recipe.status}
-                  </span>
+                  {recipe.status === "published" && (
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full font-medium flex-shrink-0 ${getStatusColor(recipe.status)}`}
+                    >
+                      {recipe.status}
+                    </span>
+                  )}
+                </div>
+                {view === "portions" ? (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {recipe.ingredientCount} ingredient
+                    {recipe.ingredientCount !== 1 ? "s" : ""}
+                  </p>
+                ) : (
+                  recipe.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                      {recipe.description}
+                    </p>
+                  )
                 )}
-              </div>
-              {recipe.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                  {recipe.description}
+                <p className="text-xs text-muted-foreground">
+                  Updated {new Date(recipe.updatedAt).toLocaleDateString()}
                 </p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Updated {new Date(recipe.updatedAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
