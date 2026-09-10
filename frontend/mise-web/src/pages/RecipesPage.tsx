@@ -83,7 +83,11 @@ export default function RecipesPage() {
         action={
           hasPermission("recipe", "create") ? (
             <Button
-              onClick={() => navigate(`/${slug}/recipes/new`)}
+              onClick={() =>
+                navigate(
+                  `/${slug}/recipes/new?isPoriton=${view === "portions"}`,
+                )
+              }
               className="bg-primary text-primary-foreground"
             >
               {view === "portions" ? "New Portion" : "New Recipe"}

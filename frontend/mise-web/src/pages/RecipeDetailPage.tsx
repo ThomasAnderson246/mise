@@ -157,6 +157,9 @@ export default function RecipeDetailPage() {
         subtitle={recipe.description ?? undefined}
         action={
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              Back
+            </Button>
             {!isPortion &&
               hasPermission("recipe", "read") &&
               recipe.status === "published" && (

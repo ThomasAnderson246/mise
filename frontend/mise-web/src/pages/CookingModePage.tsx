@@ -22,6 +22,7 @@ export default function CookingModePage() {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showIngredients, setShowIngredients] = useState(true);
   const [showAsyncwarning, setShowAsyncWarning] = useState(false);
+  const [pendingStepIndex, setPendingStepIndex] = useState<number | null>(null);
 
   const version = recipe?.currentVersion ?? null;
   const scaling = useScaling(version, recipe?.scalingMode ?? "multiplier");
@@ -44,12 +45,12 @@ export default function CookingModePage() {
   function handleNext() {
     if (!currentStep) return;
 
-    //first, check if there's a running async timer
     if (currentStep.isAsync && currentStep.hasTimer) {
       const hasRunningTimer = timers.some(
         (t) => t.stepId === currentStep.stepId,
       );
       if (!hasRunningTimer) {
+        setPendingStepIndex(currentStepIndex + 1);
         setShowAsyncWarning(true);
         return;
       }
@@ -68,11 +69,39 @@ export default function CookingModePage() {
     }
   }
 
-  function handleForceNext() {
+  function goToStep(index: number) {
+    if (index === currentStepIndex) return;
+
+    if (index < currentStepIndex) {
+      setCurrentStepIndex(index);
+      setShowAsyncWarning(false);
+      return;
+    }
+
+    if (currentStep.isAsync && currentStep.hasTimer) {
+      const hasRunningTimer = timers.some(
+        (t) => t.stepId === currentStep.stepId,
+      );
+      if (!hasRunningTimer) {
+        setPendingStepIndex(index);
+        setShowAsyncWarning(true);
+        return;
+      }
+    }
+
+    setCurrentStepIndex(index);
     setShowAsyncWarning(false);
-    if (!isLastStep) setCurrentStepIndex((prev) => prev + 1);
   }
 
+  function handleForceNext() {
+    setShowAsyncWarning(false);
+    if (pendingStepIndex !== null) {
+      setCurrentStepIndex(pendingStepIndex);
+      setPendingStepIndex(null);
+    } else if (!isLastStep) {
+      setCurrentStepIndex((prev) => prev + 1);
+    }
+  }
   function handleExit() {
     if (returnTo === "prep-list" && returnPrepListId) {
       navigate(`/${slug}/prep-lists/${returnPrepListId}`);
@@ -170,10 +199,13 @@ export default function CookingModePage() {
                   Continue without timer
                 </button>
                 <button
-                  onClick={() => setShowAsyncWarning(false)}
+                  onClick={() => {
+                    setShowAsyncWarning(false);
+                    setPendingStepIndex(null);
+                  }}
                   className="text-sm px-4 py-2 rounded-lg border border-border text-foreground"
                 >
-                  Go back
+                  Go Back
                 </button>
               </div>
             </div>
@@ -183,7 +215,7 @@ export default function CookingModePage() {
             <button
               onClick={handlePrevious}
               disabled={isFirstStep}
-              className="flex items-center gap-2 px-6 py-4 rounded-xl border border-border text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary transition-colors text-lg font-medium min-w[120px] justify-center"
+              className="flex items-center gap-2 px-6 py-4 rounded-xl border border-border text-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:border-primary transition-colors text-lg font-medium min-w-[120px] justify-center"
             >
               Previous
             </button>
@@ -192,7 +224,7 @@ export default function CookingModePage() {
               {steps.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setCurrentStepIndex(index)}
+                  onClick={() => goToStep(index)}
                   className={`w-3 h-3 rounded-full transition-colors ${
                     index === currentStepIndex
                       ? "bg-primary"
@@ -227,7 +259,7 @@ export default function CookingModePage() {
             <h2 className="text-lg font-semibold text-foreground mb-4">
               Ingredients
             </h2>
-            "
+
             <ScalingControl
               isRatioMode={scaling.isRatioMode}
               scalingFactor={scaling.scalingFactor}
@@ -242,7 +274,7 @@ export default function CookingModePage() {
                   key={ing.recipeIngredientId}
                   className="flex items-center gap-3 text-sm"
                 >
-                  <span className="w-20 text-right font-medium text-foreround flex-shrink-0">
+                  <span className="w-20 text-right font-medium text-foreground flex-shrink-0">
                     {scaling.formatQuantity(scaling.getScaledQuantity(ing))}{" "}
                     {ing.unitName ?? ""}
                   </span>
