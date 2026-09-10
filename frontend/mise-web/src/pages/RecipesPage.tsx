@@ -77,7 +77,7 @@ export default function RecipesPage() {
         title="Recipes"
         subtitle={
           view === "portions"
-            ? `${filtered.length} portion size${filtered.length} !== 1 ? 's' : ''}`
+            ? `${filtered.length} portion size${filtered.length !== 1 ? "s" : ""}`
             : `${recipes.filter((r) => !r.isPortion).length} recipe${recipes.filter((r) => !r.isPortion).length !== 1 ? "s" : ""} in your book`
         }
         action={
@@ -183,7 +183,6 @@ export default function RecipesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((recipe) => {
-            console.log("view:", view, "isPortion:", recipe.isPortion);
             return (
               <div
                 key={recipe.recipeId}

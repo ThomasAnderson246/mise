@@ -420,7 +420,7 @@ export default function RecipeDetailPage() {
                         Version {v.versionNumber}
                       </span>
                       {v.isCurrent && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-green text-green-800 font-medium">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-medium">
                           current
                         </span>
                       )}
@@ -435,7 +435,7 @@ export default function RecipeDetailPage() {
                   </div>
 
                   {!v.isCurrent && hasPermission("recipe", "publish") && (
-                    <>
+                    <div onClick={(e) => e.stopPropagation()}>
                       {showRestoreConfirm === v.versionId ? (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
@@ -468,7 +468,7 @@ export default function RecipeDetailPage() {
                           Restore
                         </Button>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               ))}

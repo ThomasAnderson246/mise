@@ -100,9 +100,9 @@ function LoginPage() {
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md px-10 py-12">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold text-[#6B1A2B] tracking-tight">
-            Mise
+            {tenant?.name ?? "Mise"}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">{tenant.name}</p>
+          <p className="text-sm text-gray-500 mt-1">Sign in to continue</p>
         </div>
 
         {redirectMessage && (

@@ -65,6 +65,7 @@ export default function RecipeEditorPage() {
 
   useEffect(() => {
     if (!user?.token) return;
+    let ignore = false;
 
     async function load() {
       try {
@@ -72,12 +73,13 @@ export default function RecipeEditorPage() {
           getCategories(user!.token),
           getUnitTypes(user!.token),
         ]);
+        if (ignore) return;
         setCategories(catData);
         setUnitTypes(unitData);
 
         if (isEditMode && recipeId) {
           const recipeData = await getRecipeById(user!.token, recipeId);
-          console.log("isPortion from API:", recipeData.isPortion);
+          if (ignore) return;
           setTitle(recipeData.title);
           setDescription(recipeData.description ?? "");
           setScalingMode(recipeData.scalingMode);
@@ -89,6 +91,7 @@ export default function RecipeEditorPage() {
 
           if (recipeData.status === "published") {
             const existingDraft = await getDraft(user!.token, recipeId);
+            if (ignore) return;
             if (existingDraft?.currentVersion) {
               setDraftVersionId(existingDraft.currentVersion.versionId);
               setLocalIngredients(existingDraft.currentVersion.ingredients);
@@ -97,7 +100,9 @@ export default function RecipeEditorPage() {
               toast.info("Resuming unsaved draft from a previous session.");
             } else {
               await createDraft(user!.token, recipeId);
+              if (ignore) return;
               const newDraft = await getDraft(user!.token, recipeId);
+              if (ignore) return;
               if (newDraft?.currentVersion) {
                 setDraftVersionId(newDraft.currentVersion.versionId);
                 setLocalIngredients(newDraft.currentVersion.ingredients);
@@ -111,12 +116,16 @@ export default function RecipeEditorPage() {
           }
         }
       } catch {
-        toast.error("Failed to load recipe data.");
+        if (!ignore) toast.error("Failed to load recipe data.");
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     }
     load();
+
+    return () => {
+      ignore = true;
+    };
   }, [user, recipeId, isEditMode]);
 
   async function handleSaveRecipe() {
@@ -380,7 +389,7 @@ export default function RecipeEditorPage() {
 
       {isPublishedRecipe && draftVersionId && (
         <div className="mb-4 px-4 py-3 rounded-lg bg-card border border-border text-sm text-muted-foreground">
-          Editing draft - changes wont' go live until you publish.
+          Editing draft - changes won't go live until you publish.
         </div>
       )}
 
@@ -421,7 +430,7 @@ export default function RecipeEditorPage() {
               This is a portion size
             </label>
             <p className="text-xs text-muted-foreground mt-1">
-              Portoin sizes appear in the Portion Sizes tab and can be linked to
+              Portion sizes appear in the Portion Sizes tab and can be linked to
               prep lists.
             </p>
           </div>
@@ -450,7 +459,7 @@ export default function RecipeEditorPage() {
                   <button
                     key={cat.categoryId}
                     onClick={() => toggleCategory(cat.categoryId)}
-                    className={`text-xs px-3 py-1.6 rounded-full border transition-colors ${
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                       selectedCategories.includes(cat.categoryId)
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-card text-foreground border-border hover:border-primary"

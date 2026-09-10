@@ -20,13 +20,32 @@ interface AuthContextType {
   hasPermission: (resource: string, action: string) => boolean;
 }
 
+const STORAGE_KEY = "mise_user";
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUserState] = useState<AuthUser | null>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  function setUser(user: AuthUser | null) {
+    if (user) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+    setUserState(user);
+  }
 
   function logout() {
-    setUser(null);
+    localStorage.removeItem(STORAGE_KEY);
+    setUserState(null);
   }
 
   function hasPermission(resource: string, action: string): boolean {
