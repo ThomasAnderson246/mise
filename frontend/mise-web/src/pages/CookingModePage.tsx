@@ -43,13 +43,6 @@ export default function CookingModePage() {
 
   function handleNext() {
     if (!currentStep) return;
-    console.log("Step:", currentStep.instruction);
-    console.log("isAsync:", currentStep.isAsync);
-    console.log("hasTimer:", currentStep.hasTimer);
-    console.log(
-      "Running timers:",
-      timers.map((t) => t.stepId),
-    );
 
     //first, check if there's a running async timer
     if (currentStep.isAsync && currentStep.hasTimer) {

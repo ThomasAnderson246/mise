@@ -136,7 +136,6 @@ export async function createRecipe(token: string, request: CreateRecipeRequest):
 }
 
 export async function updateRecipe(token: string, recipeId: string, request: UpdateRecipeRequest): Promise<RecipeDetail>{
-    console.log('Update recipe request:', JSON.stringify(request))
     const response = await axios.put(`${BASE_URL}/api/recipe/${recipeId}`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}
@@ -240,7 +239,6 @@ export async function saveDraft(token: string, recipeId: string, versionId: stri
         displayOrder: number
     }[]
 }) : Promise<void> {
-    console.log('SaveDraft request:', JSON.stringify(request))
     await axios.put(`${BASE_URL}/api/recipe/${recipeId}/draft/${versionId}`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}

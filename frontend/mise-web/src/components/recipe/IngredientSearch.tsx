@@ -62,7 +62,6 @@ export function IngredientSearch({
 
   function handleAdd() {
     if (!selectedIngredient || !quantity) return;
-    console.log("handleAdd called", selectedIngredient, quantity);
 
     const newIngredient: RecipeIngredient = {
       recipeIngredientId: crypto.randomUUID(),
@@ -123,9 +122,8 @@ export function IngredientSearch({
                     key={ing.ingredientId}
                     onClick={() => {
                       handleSelectedIngredient(ing);
-                      console.log("Click");
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-foreground hvoer:bg-muted"
+                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted"
                   >
                     {ing.name}
                     {ing.defaultUnitTypeName && (
@@ -137,7 +135,6 @@ export function IngredientSearch({
                 ))}
                 <button
                   onClick={() => {
-                    console.log("Click");
                     setShowNewIngredientForm(true);
                     setShowDropdown(false);
                   }}
@@ -149,7 +146,6 @@ export function IngredientSearch({
             ) : (
               <button
                 onClick={() => {
-                  console.log("Click!");
                   setShowNewIngredientForm(true);
                   setShowDropdown(false);
                 }}

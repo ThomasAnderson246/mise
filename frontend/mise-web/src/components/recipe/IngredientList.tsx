@@ -25,7 +25,6 @@ export function IngredientList({
   const [editUnitTypeId, setEditUnitTypeId] = useState("");
 
   function startEdit(ing: RecipeIngredient) {
-    console.log("startEdit called for:", ing.recipeIngredientId);
     setEditingId(ing.recipeIngredientId);
     setEditQuantity(ing.quantity.toString());
     setEditUnitTypeId(ing.unitTypeId ?? "");

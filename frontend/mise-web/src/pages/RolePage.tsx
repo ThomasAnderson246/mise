@@ -31,10 +31,8 @@ export default function RolesPage() {
         getRoles(user.token),
         getAllPermissions(user.token),
       ]);
-      console.log("Permission Data: ", permissionData);
       setRoles(rolesData);
       setAllPermissions(permissionData);
-      console.log("All permissions:", allPermissions);
     } catch {
       toast.error("Failed to load roles.");
     } finally {

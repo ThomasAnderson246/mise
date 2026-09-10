@@ -65,7 +65,6 @@ export async function addAllergenToIngredient(token: string, ingredientId: strin
     const current = await getIngredientById(token, ingredientId)
     const existingAllergenIds = current.allergens.map(a => a.allergenId)
     const payload = { allergenIds: [...existingAllergenIds, allergenId] }
-    console.log('Adding allergen payload:', JSON.stringify(payload))
     const response = await axios.put(`${BASE_URL}/api/ingredient/${ingredientId}`, payload, authHeaders(token))
     return response.data.data
 }

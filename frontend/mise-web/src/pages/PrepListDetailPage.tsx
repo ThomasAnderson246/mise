@@ -59,7 +59,6 @@ export default function PrepListDetailPage() {
           getPrepListById(user!.token, prepListId!),
           getUsers(user!.token),
         ]);
-        console.log("PrepList data:", prepData);
         setPrepList(prepData);
 
         setUsers(userData);

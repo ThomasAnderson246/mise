@@ -95,7 +95,6 @@ export async function createPrepList(token: string, request: CreatePrepListReque
 }
 
 export async function addPrepListItem(token: string, prepListId: string, request: AddPrepListItemRequest): Promise<PrepList>{
-    console.log('Adding item:', JSON.stringify(request))
     const response = await axios.post(`${BASE_URL}/api/preplist/${prepListId}/items`, request, {
         withCredentials: true,
         headers: {Authorization: `Bearer ${token}`}

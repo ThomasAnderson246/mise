@@ -131,8 +131,6 @@ export default function RecipeEditorPage() {
   async function handleSaveRecipe() {
     if (!user?.token || !title.trim()) return;
     setSaving(true);
-    console.log("Saving with draftVersionId:", draftVersionId);
-    console.log("currentRecipeId:", currentRecipeId);
 
     try {
       if (!currentRecipeId) {
@@ -216,7 +214,6 @@ export default function RecipeEditorPage() {
   }
 
   function handleIngredientAdded(ingredient: RecipeIngredient) {
-    console.log("Ingredient added:", ingredient);
     setLocalIngredients((prev) => [...prev, ingredient]);
     setHasUnsavedChanges(true);
   }
