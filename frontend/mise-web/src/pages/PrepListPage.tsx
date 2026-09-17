@@ -176,9 +176,9 @@ export default function PrepListPage() {
                     </span>
                   )}
                 </div>
-                {pl.createdbyName && (
+                {pl.createdByName && (
                   <p className="text-xs text-muted-foreground mb-1">
-                    Created by {pl.createdbyName}
+                    Created by {pl.createdByName}
                   </p>
                 )}
                 {pl.assignedToName && (

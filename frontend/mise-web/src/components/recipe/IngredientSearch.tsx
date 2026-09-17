@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { searchIngredients } from "@/api/ingredientApi";
 import { Button } from "../ui/button";
@@ -31,9 +31,14 @@ export function IngredientSearch({
   const [unitTypeId, setUnitTypeId] = useState("");
 
   const [showNewIngredientForm, setShowNewIngredientForm] = useState(false);
+  const skipNextSearchRef = useRef(false);
   //const [newName, setNewName] = useState("");
 
   useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
     if (!user?.token || ingredientSearch.length < 2) {
       setIngredientResults([]);
       setShowDropdown(false);
@@ -54,6 +59,7 @@ export function IngredientSearch({
   }, [ingredientSearch, user]);
 
   function handleSelectedIngredient(ing: IngredientItem) {
+    skipNextSearchRef.current = true;
     setSelectedIngredient(ing);
     setIngredientSearch(ing.name);
     setUnitTypeId(ing.defaultUnitTypeId ?? "");
@@ -70,6 +76,8 @@ export function IngredientSearch({
       quantity: parseFloat(quantity),
       unitName:
         unitTypes.find((u) => u.unitTypeId === unitTypeId)?.name ?? null,
+      measureType:
+        unitTypes.find((u) => u.unitTypeId === unitTypeId)?.measureType ?? null,
       unitTypeId: unitTypeId || null,
       displayOrder: currentIngredientCount + 1,
       groupId: null,

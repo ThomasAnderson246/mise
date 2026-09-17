@@ -219,7 +219,7 @@ export function AddPrepListItemForm({
 
           {selectedRecipe && (
             <div className="flex items-center gap-3">
-              <label className="text-sm text-muted-foregorund flex-shrink-0">
+              <label className="text-sm text-muted-foreground flex-shrink-0">
                 Portions:
               </label>
               <input

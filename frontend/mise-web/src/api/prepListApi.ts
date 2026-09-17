@@ -39,7 +39,7 @@ export interface PrepList {
     tenantId: string
     name: string
     createdBy: string | null
-    createdbyName: string | null
+    createdByName: string | null
     assignedTo: string | null
     assignedToName: string | null
     totalItems: number

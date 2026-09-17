@@ -71,6 +71,7 @@ export interface RecipeIngredient {
    
     quantity :number
     unitName: string | null
+    measureType: string | null
     unitTypeId: string | null
     displayOrder: number
     groupId: string | null

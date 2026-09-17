@@ -130,22 +130,33 @@ namespace Mise.Infrastructure.Services
                 throw new InvalidOperationException("Cannot add items to a completed prep list.");
 
 
+            Guid? anchorIngredientId = request.AnchorIngredientId;
+
             if (request.SourceType == "recipe" || request.SourceType == "portion")
             {
                 if (request.RecipeId == null)
                     throw new InvalidOperationException("RecipeId is required for recipe and portions.");
 
-                var recipeExists = await _context.Recipes
-                    .AnyAsync(r => r.RecipeId == request.RecipeId && r.TenantId == tenantId);
-                if (!recipeExists)
-                    throw new KeyNotFoundException($"Recipe {request.RecipeId} not found.");
+                var recipe = await _context.Recipes
+                    .Include(r => r.CurrentVersion)
+                        .ThenInclude(v => v!.Ingredients)
+                    .FirstOrDefaultAsync(r => r.RecipeId == request.RecipeId && r.TenantId == tenantId);
 
-                if (request.AnchorIngredientId != null)
+                if (recipe == null)
+                    throw new KeyNotFoundException($"Recipe {request.RecipeId} was not found.");
+
+                if (anchorIngredientId != null)
                 {
                     var anchorExists = await _context.Ingredients
-                        .AnyAsync(i => i.IngredientId == request.AnchorIngredientId && i.TenantId == tenantId);
+                        .AnyAsync(i => i.IngredientId == anchorIngredientId && i.TenantId == tenantId);
+
                     if (!anchorExists)
-                        throw new KeyNotFoundException($"Anchor ingredient {request.AnchorIngredientId} not found.");
+                        throw new KeyNotFoundException($"Anchor ingredient {anchorIngredientId} not found.");
+                }
+                else if (recipe.ScalingMode == "ratio" && recipe.CurrentVersion != null)
+                {
+                    anchorIngredientId = recipe.CurrentVersion.Ingredients
+                        .FirstOrDefault(ri => ri.IsRatioAnchor)?.IngredientId;
                 }
             }
 
@@ -160,7 +171,7 @@ namespace Mise.Infrastructure.Services
                     ItemName = request.ItemName,
                     RecipeId = request.RecipeId,
                     ScalingFactor = request.ScalingFactor,
-                    AnchorIngredientId = request.AnchorIngredientId,
+                    AnchorIngredientId = anchorIngredientId,
                     AnchorQuantity = request.AnchorQuantity,
                     Quantity = request.Quantity,
                     Unit = request.Unit,
