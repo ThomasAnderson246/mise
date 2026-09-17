@@ -19,13 +19,21 @@ export function useScaling(version: RecipeVersion | null, scalingMode: string) {
     function getScaledQuantity(ingredient: RecipeIngredient): number {
         if (!version) return ingredient.quantity
 
+        let scaled: number
+
         if (isRatioMode && anchorIngredient) {
             const effectiveAnchor = anchorQuantity ?? anchorIngredient.quantity
             const ratio = ingredient.quantity / anchorIngredient.quantity
-            return Math.round((ratio * effectiveAnchor) * 1000) / 1000
+            scaled = ratio * effectiveAnchor
+        } else {
+            scaled = ingredient.quantity * scalingFactor
         }
 
-        return Math.round((ingredient.quantity * scalingFactor) * 1000) /1000
+        if (ingredient.measureType === "count") {
+            return Math.ceil(scaled)
+        }
+
+        return Math.round(scaled * 1000) / 1000
     }
 
     function formatQuantity(quantity: number): string{

@@ -12,6 +12,8 @@ interface IngredientListProps {
     quantity: number,
     unitTypeId: string | null,
   ) => void;
+  isRatioMode?: boolean;
+  onSetAnchor?: (RecipeIngredientId: string) => void;
 }
 
 export function IngredientList({
@@ -19,6 +21,8 @@ export function IngredientList({
   unitTypes,
   onRemove,
   onUpdate,
+  isRatioMode = false,
+  onSetAnchor,
 }: IngredientListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuantity, setEditQuantity] = useState("");
@@ -97,11 +101,33 @@ export function IngredientList({
           ) : (
             //Display mode
             <div className="flex items-center gap-3 px-4 py-2.5">
+              {isRatioMode && (
+                <button
+                  onClick={() => onSetAnchor?.(ing.recipeIngredientId)}
+                  title={
+                    ing.isRatioAnchor
+                      ? "This is the anchor ingredient"
+                      : "Set as anchor ingredient"
+                  }
+                  className={`flex-shrink-0 text-lg leading-none ${
+                    ing.isRatioAnchor
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-primary"
+                  }`}
+                >
+                  {ing.isRatioAnchor ? "★" : "☆"}
+                </button>
+              )}
               <span className="w-20 text-right text-sm font-medium text-foreground flex-shrink-0">
                 {ing.quantity} {ing.unitName ?? ""}
               </span>
               <span className="flex-1 text-sm text-foreground">
                 {ing.ingredientName}
+                {isRatioMode && ing.isRatioAnchor && (
+                  <span className="ml-2 text-xs text-primary font-medium">
+                    (anchor)
+                  </span>
+                )}
               </span>
               <button
                 onClick={() => startEdit(ing)}

@@ -168,7 +168,7 @@ export default function RecipeEditorPage() {
               displayOrder: index + 1,
               groupId: ing.groupId ?? null,
               isNonConvertible: false,
-              isRatioAnchor: false,
+              isRatioAnchor: ing.isRatioAnchor ?? false,
             })),
             steps: localSteps.map((step, index) => ({
               stepId: step.stepId,
@@ -274,9 +274,22 @@ export default function RecipeEditorPage() {
               unitName:
                 unitTypes.find((u) => u.unitTypeId === unitTypeId)?.name ??
                 null,
+              measureType:
+                unitTypes.find((u) => u.unitTypeId === unitTypeId)
+                  ?.measureType ?? null,
             }
           : ing,
       ),
+    );
+    setHasUnsavedChanges(true);
+  }
+
+  function handleSetAnchor(recipeIngredientId: string) {
+    setLocalIngredients((prev) =>
+      prev.map((ing) => ({
+        ...ing,
+        isRatioAnchor: ing.recipeIngredientId === recipeIngredientId,
+      })),
     );
     setHasUnsavedChanges(true);
   }
@@ -481,6 +494,8 @@ export default function RecipeEditorPage() {
             unitTypes={unitTypes}
             onRemove={handleIngredientRemoved}
             onUpdate={handleIngredientUpdated}
+            isRatioMode={scalingMode === "ratio"}
+            onSetAnchor={handleSetAnchor}
           />
           <IngredientSearch
             unitTypes={unitTypes}

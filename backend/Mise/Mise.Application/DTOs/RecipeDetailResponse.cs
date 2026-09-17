@@ -54,6 +54,7 @@ namespace Mise.Application.DTOs
         public string IngredientName { get; set; } = string.Empty;
         public decimal Quantity { get; set; }
         public string? UnitName { get; set; }
+        public string? MeasureType { get; set; }
         public Guid? UnitTypeId { get; set; }
         public int DisplayOrder { get; set; }
         public Guid? GroupId { get; set; }

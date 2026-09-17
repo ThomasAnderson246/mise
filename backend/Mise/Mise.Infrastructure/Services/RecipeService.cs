@@ -697,6 +697,20 @@ namespace Mise.Infrastructure.Services
                 await transaction.CommitAsync();
                 return draft;
             }
+            catch (DbUpdateException) 
+            {
+                await transaction.RollbackAsync();
+
+                var concurrentDraft = await _context.RecipeVersions
+                    .Include(rv => rv.Steps)
+                    .Include(rv => rv.Ingredients)
+                    .Include(rv => rv.IngredientGroups)
+                    .FirstAsync(rv => rv.RecipeId == recipeId && rv.IsDraft);
+
+                if (concurrentDraft != null)
+                    return concurrentDraft;
+                throw;
+            }
             catch
             {
                 await transaction.RollbackAsync();
