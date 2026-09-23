@@ -276,7 +276,94 @@ namespace Mise.Infrastructure.Persistence
                 await context.RolePermissions.AddRangeAsync(newRolePermissions);
                 await context.SaveChangesAsync();
             }
-            
+
+            if (tenant != null)
+            {
+                var rolePermissionMap = new Dictionary<string, string[]>
+                {
+                    ["owner"] = allPermissionEntities.Select(p => p.Name).ToArray(),
+                    ["head chef"] = allPermissionEntities.Select(p => p.Name).ToArray(),
+                    ["sous chef"] = new[]
+                    {
+                        "recipe.create",
+                        "recipe.read",
+                        "recipe.update",
+                        "recipe.publish",
+                        "menuitem.create",
+                        "menuitem.read",
+                        "menuitem.update",
+                        "ingredient.create",
+                        "ingredient.read",
+                        "ingredient.update",
+                        "allergen.read",
+                        "category.read",
+                        "unit.read",
+                        "preplist.create",
+                        "preplist.read",
+                        "preplist.update",
+                        "preplist.complete",
+                        "preplist.manage",
+                        "notification.read",
+                        "notification.send",
+                    },
+                    ["cook"] = new[]
+                    {
+                        "recipe.read",
+                        "menuitem.read",
+                        "preplist.read",
+                        "preplist.complete",
+                        "preplist.create",
+                        "preplist.update",
+                        "notification.read",
+                    },
+                    ["foh manager"] = new[]
+                    {
+                        "menuitem.read",
+                        "menuitem.update",
+                        "allergen.read",
+                        "notification.read",
+                        "notification.send",
+                        "user.manage",
+                        "audit.read"
+                    },
+                    ["foh staff"] = new[]
+                    {
+                        "menuitem.read",
+                        "allergen.read",
+                        "notificaiton.read",
+                    },
+                };
+
+                var rolesForTenant = await context.Roles
+                    .Where(r => r.TenantId == tenant.TenantId && rolePermissionMap.Keys.Contains(r.Name))
+                    .ToListAsync();
+
+                foreach (var role in rolesForTenant)
+                {
+                    if (!rolePermissionMap.TryGetValue(role.Name, out var permissionNames))
+                        continue;
+
+                    var exisingIds = await context.RolePermissions
+                        .Where(rp => rp.RoleId == role.RoleId)
+                        .Select(rp => rp.PermissionId)
+                        .ToListAsync();
+
+                    var permissionsToAdd = allPermissionEntities
+                        .Where(p => permissionNames.Contains(p.Name) && !exisingIds.Contains(p.PermissionId))
+                        .Select(p => new RolePermission
+                        {
+                            RoleId = role.RoleId,
+                            PermissionId = p.PermissionId,
+                            AssignedAt = DateTime.UtcNow
+                        }).ToList();
+
+                    if (permissionsToAdd.Any())
+                    {
+                        await context.RolePermissions.AddRangeAsync(permissionsToAdd);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
         }
     }
 }

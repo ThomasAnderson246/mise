@@ -235,7 +235,7 @@ export default function PrepListDetailPage() {
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="text-sm text-muted-foreground whitespace-wrap">
+        <span className="text-sm text-muted-foreground whitespace-nowrap">
           {completedItems} / {totalItems} items
         </span>
       </div>
@@ -309,7 +309,7 @@ export default function PrepListDetailPage() {
                 }`}
               >
                 {item.isComplete && (
-                  <span className="text-white text-xs">check</span>
+                  <span className="text-white text-xs">✓</span>
                 )}
               </div>
             )}

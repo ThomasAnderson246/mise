@@ -47,7 +47,13 @@ namespace Mise.Infrastructure.Services
             if (emailExists)
                 throw new InvalidOperationException($"A user with email '{request.Email}' already exists.");
 
-            var tempPassword = GenerateTemporaryPassword();
+            // ALPHA TEST PROTOCOL: every invited user gets the same password
+            // ALPHA TEST PROTOCOL: this is for alpha testing only to ease with juggling passwords
+            // ALPHA TEST PROTOCOL: this will be replaced with proper password logic (which already exists)
+            // ALPHA TEST PROTOCOL: once we begin the beta test
+
+            var tempPassword = AlphaTestPassword;
+            // var tempPassword = GenerateTemporaryPassword();
             var passwordHash = _authService.HashPassword(tempPassword);
 
             var user = new User
@@ -261,7 +267,8 @@ namespace Mise.Infrastructure.Services
                 null);
         }
 
-
+        // ALPHA TEST PROTOCOL: see note in InviteAsync() above
+        private const string AlphaTestPassword = "AlphaTest123";
         private static string GenerateTemporaryPassword()
         {
             const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
