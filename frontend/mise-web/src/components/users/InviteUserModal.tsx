@@ -94,7 +94,7 @@ export function InviteUserModal({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {tempPassword ? "UserInvited" : "Invite user"}
+            {tempPassword ? "User Invited" : "Invite user"}
           </DialogTitle>
         </DialogHeader>
 
@@ -102,7 +102,7 @@ export function InviteUserModal({
           <div className="space-y-4 mt-4">
             <p className="text-sm text-foreground">
               User invited successfully. Share this temporary password with
-              them. They'll be prompted to change it on first login.
+              them.
             </p>
             <div className="flex items-center gap-2 p-3 bg-muted rounded-lg border border-border">
               <code className="flex-1 text-sm font-mono text-foreground">

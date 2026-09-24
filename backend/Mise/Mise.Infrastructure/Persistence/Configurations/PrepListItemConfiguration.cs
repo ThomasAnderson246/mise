@@ -37,8 +37,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .IsRequired();
 
             builder.Property(pli => pli.RecipeId)
-                .HasColumnName("recipe_id")
-                .IsRequired();
+                .HasColumnName("recipe_id");
 
             builder.Property(pli => pli.ScalingFactor)
                 .HasColumnName("scaling_factor")

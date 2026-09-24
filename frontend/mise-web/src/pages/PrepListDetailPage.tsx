@@ -55,15 +55,16 @@ export default function PrepListDetailPage() {
 
     async function load() {
       try {
+        const manage = hasPermission("preplist", "manage");
+
         const [prepData, userData] = await Promise.all([
           getPrepListById(user!.token, prepListId!),
-          getUsers(user!.token),
+          manage ? getUsers(user!.token) : Promise.resolve([]),
         ]);
         setPrepList(prepData);
 
         setUsers(userData);
         const owner = prepData.createdBy === user!.userId;
-        const manage = hasPermission("preplist", "manage");
         setIsOwner(owner);
         setCanManage(manage);
         setCanComplete(owner || manage);
@@ -191,7 +192,7 @@ export default function PrepListDetailPage() {
           <div className="flex gap-2">
             {canManage && !prepList.isComplete && (
               <Button variant="outline" onClick={() => setShowAssign(true)}>
-                Assign
+                {prepList.assignedTo ? "Reassign" : "Assign"}
               </Button>
             )}
             {canComplete && !prepList.isComplete && (
@@ -252,12 +253,13 @@ export default function PrepListDetailPage() {
           <select
             value={assignUserId}
             onChange={(e) => setAssignUserId(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full px-4 py-2.5 rounded-lg border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="">Select a user...</option>
             {users.map((u) => (
               <option key={u.userId} value={u.userId}>
-                {u.firstName} {u.lastName} - {u.role}
+                {u.firstName} {u.lastName}
+                {u.roles.length > 0 ? ` - ${u.roles.join(", ")}` : ""}
               </option>
             ))}
           </select>

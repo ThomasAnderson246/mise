@@ -64,7 +64,9 @@ namespace Mise.Infrastructure.Services
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 PasswordHash = passwordHash,
-                Status = "pending",
+                // ALPHA TEST PROTOCOL: skip "pending" since we do not have email confirmation set up
+                // ALPHA TEST PROTOCOL: we will restore Status = "pending" once invite/email confirmation flow exists
+                Status = "active",
                 UnitPreference = request.UnitPreference,
                 MustChangePassword = true,
                 CreatedAt = DateTime.UtcNow,

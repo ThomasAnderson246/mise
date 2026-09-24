@@ -100,7 +100,7 @@ export default function UsersPage() {
             className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
               filter === f
                 ? "bg-primary text-primary-foreground border-primary"
-                : "bg-card text-foreground border-border hoer:border-primary"
+                : "bg-card text-foreground border-border hover:border-primary"
             }`}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}

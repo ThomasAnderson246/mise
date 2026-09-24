@@ -330,7 +330,7 @@ namespace Mise.Infrastructure.Persistence
                     {
                         "menuitem.read",
                         "allergen.read",
-                        "notificaiton.read",
+                        "notification.read",
                     },
                 };
 
