@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getRecipes } from "@/api/recipeApi";
+import { getRecipes, getRecipeById } from "@/api/recipeApi";
 import { Button } from "../ui/button";
-import type { RecipeItem } from "@/api/recipeApi";
+import type { RecipeItem, RecipeIngredient } from "@/api/recipeApi";
 import type { AddPrepListItemRequest } from "@/api/prepListApi";
 
 interface AddPrepListItemFormProps {
@@ -39,6 +39,9 @@ export function AddPrepListItemForm({
 
   //recipe data for anchor detection
   const [selectedRecipe, setSelectedRecipe] = useState<RecipeItem | null>(null);
+  const [anchorIngredient, setAnchorIngredient] =
+    useState<RecipeIngredient | null>(null);
+  const [loadingAnchor, setLoadingAnchor] = useState(false);
 
   useEffect(() => {
     if (!user?.token) return;
@@ -66,6 +69,21 @@ export function AddPrepListItemForm({
     setScalingFactor("1");
     setAnchorIngredientId("");
     setAnchorQuantity("");
+    setAnchorIngredient(null);
+
+    if (recipe?.scalingMode === "ratio" && user?.token) {
+      setLoadingAnchor(true);
+      getRecipeById(user.token, recipeId)
+        .then((detail) => {
+          const anchor =
+            detail.currentVersion?.ingredients.find((i) => i.isRatioAnchor) ??
+            null;
+          setAnchorIngredient(anchor);
+          setAnchorIngredientId(anchor?.ingredientId ?? "");
+        })
+        .catch(() => setAnchorIngredient(null))
+        .finally(() => setLoadingAnchor(false));
+    }
   }
 
   function handleSubmit() {
@@ -181,7 +199,17 @@ export function AddPrepListItemForm({
               </p>
               <div className="flex items-center gap-3">
                 <label className="text-sm text-muted-foreground flex-shrink-0">
-                  Anchor quantity:{" "}
+                  Acnhor quantity:
+                  {loadingAnchor
+                    ? "..."
+                    : anchorIngredient
+                      ? `(${anchorIngredient.ingredientName}${
+                          anchorIngredient.unitName
+                            ? `, ${anchorIngredient.unitName}`
+                            : ""
+                        })`
+                      : ""}{" "}
+                  : {""}
                 </label>
                 <input
                   type="number"
@@ -190,8 +218,13 @@ export function AddPrepListItemForm({
                   value={anchorQuantity}
                   onChange={(e) => setAnchorQuantity(e.target.value)}
                   placeholder="Amount"
-                  className="w-24 px-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-24 px-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm fous:outline-none focus:ring-2 focus:ring-ring"
                 />
+                {anchorIngredient?.unitName && (
+                  <span className="text-sm text-muted-foreground">
+                    {anchorIngredient.unitName}
+                  </span>
+                )}
               </div>
             </div>
           )}
