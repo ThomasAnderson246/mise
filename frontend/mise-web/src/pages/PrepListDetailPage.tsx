@@ -38,7 +38,8 @@ export default function PrepListDetailPage() {
   // authentication states
   const [isOwner, setIsOwner] = useState(false);
   const [canManage, setCanManage] = useState(false);
-  const [canComplete, setCanComplete] = useState(false);
+  const [canCheckItems, setCanCheckItems] = useState(false);
+  const [canCompleteList, setCanCompleteList] = useState(false);
 
   // add item form state variables
   const [showAddItem, setShowAddItem] = useState(false);
@@ -65,9 +66,15 @@ export default function PrepListDetailPage() {
 
         setUsers(userData);
         const owner = prepData.createdBy === user!.userId;
+        const assignee = prepData.assignedTo === user!.userId;
+        const canUpdate = hasPermission("preplist", "update");
+        const canCompletePermission = hasPermission("preplist", "complete");
         setIsOwner(owner);
         setCanManage(manage);
-        setCanComplete(owner || manage);
+        setCanCheckItems(owner || manage || (assignee && canUpdate));
+        setCanCompleteList(
+          owner || manage || (assignee && canCompletePermission),
+        );
       } catch {
         toast.error("Failed to load prep list.");
         navigate(`/${slug}/prep-lists`);
@@ -195,7 +202,7 @@ export default function PrepListDetailPage() {
                 {prepList.assignedTo ? "Reassign" : "Assign"}
               </Button>
             )}
-            {canComplete && !prepList.isComplete && (
+            {canCompleteList && !prepList.isComplete && (
               <>
                 {showCompleteConfirm ? (
                   <div className="flex items-center gap-2">
@@ -294,7 +301,7 @@ export default function PrepListDetailPage() {
                 : "bg-card border-border"
             }`}
           >
-            {!prepList.isComplete && canComplete && !item.isComplete && (
+            {!prepList.isComplete && canCheckItems && !item.isComplete && (
               <input
                 type="checkbox"
                 checked={item.isComplete}
@@ -302,7 +309,7 @@ export default function PrepListDetailPage() {
                 className="w-5 h-5 rounded flex-shrink-0 cursor-pointer accent-secondary"
               />
             )}
-            {(prepList.isComplete || !canComplete || item.isComplete) && (
+            {(prepList.isComplete || !canCheckItems || item.isComplete) && (
               <div
                 className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${
                   item.isComplete

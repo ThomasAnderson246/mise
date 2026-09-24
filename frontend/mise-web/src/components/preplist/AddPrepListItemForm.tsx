@@ -199,7 +199,7 @@ export function AddPrepListItemForm({
               </p>
               <div className="flex items-center gap-3">
                 <label className="text-sm text-muted-foreground flex-shrink-0">
-                  Acnhor quantity:
+                  Anchor quantity:
                   {loadingAnchor
                     ? "..."
                     : anchorIngredient
@@ -218,7 +218,7 @@ export function AddPrepListItemForm({
                   value={anchorQuantity}
                   onChange={(e) => setAnchorQuantity(e.target.value)}
                   placeholder="Amount"
-                  className="w-24 px-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm fous:outline-none focus:ring-2 focus:ring-ring"
+                  className="w-24 px-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 {anchorIngredient?.unitName && (
                   <span className="text-sm text-muted-foreground">
