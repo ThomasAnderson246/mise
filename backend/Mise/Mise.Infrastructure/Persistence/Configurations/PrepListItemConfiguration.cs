@@ -75,6 +75,25 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(pli => pli.CompletedAt)
                 .HasColumnName("completed_at");
 
+            builder.Property(pli => pli.IsIncomplete)
+                .HasColumnName("is_incomplete")
+                .HasDefaultValue(false);
+
+            builder.Property(pli => pli.IncompleteReasonCode)
+                .HasColumnName("incomplete_reason_code")
+                .HasMaxLength(30);
+
+            builder.Property(pli => pli.IncompleteNote)
+                .HasColumnName("incomplete_note");
+
+            builder.Property(pli => pli.IncompleteFlaggedBy)
+                .HasColumnName("incomplete_flagged_by");
+
+            builder.Property(pli => pli.InCompleteFlaggedAt)
+                .HasColumnName("incompleted_flagged_at");
+
+
+
             // keys & restraints
 
             builder.HasOne(pli => pli.PrepList)
@@ -95,6 +114,11 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.HasOne(pli => pli.CompletedByUser)
                 .WithMany()
                 .HasForeignKey(pli => pli.CompletedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(pli => pli.IncompleteFlaggedByUser)
+                .WithMany()
+                .HasForeignKey(pli => pli.IncompleteFlaggedBy)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

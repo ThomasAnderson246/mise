@@ -47,6 +47,7 @@ namespace Mise.Infrastructure.Persistence.Context
         public DbSet<MenuItemAllergen> MenuItemAllergens { get; set; }
         public DbSet<RecipeIngredientGroup> RecipeIngredientGroups { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<PriorityItem> PriorityItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

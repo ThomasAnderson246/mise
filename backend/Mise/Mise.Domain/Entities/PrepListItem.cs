@@ -24,12 +24,18 @@ namespace Mise.Domain.Entities
         public Guid? CompletedBy { get; set; }
         public DateTime? CompletedAt { get; set; }
 
+        public bool IsIncomplete { get; set; } = false;
+        public string? IncompleteReasonCode {  get; set; }
+        public string? IncompleteNote {  get; set; }
+        public Guid? IncompleteFlaggedBy { get; set; }
+        public DateTime? InCompleteFlaggedAt {  get; set; }
+
 
         // navigation
         public PrepList PrepList { get; set; } = null!;
         public Recipe? Recipe { get; set; }
         public Ingredient? AnchorIngredient { get; set; }
         public User? CompletedByUser { get; set; }
-
+        public User? IncompleteFlaggedByUser { get; set; }
     }
 }

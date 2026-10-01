@@ -36,7 +36,7 @@ export default function PrepListDetailPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
 
   // authentication states
-  const [isOwner, setIsOwner] = useState(false);
+
   const [canManage, setCanManage] = useState(false);
   const [canCheckItems, setCanCheckItems] = useState(false);
   const [canCompleteList, setCanCompleteList] = useState(false);
@@ -69,7 +69,7 @@ export default function PrepListDetailPage() {
         const assignee = prepData.assignedTo === user!.userId;
         const canUpdate = hasPermission("preplist", "update");
         const canCompletePermission = hasPermission("preplist", "complete");
-        setIsOwner(owner);
+
         setCanManage(manage);
         setCanCheckItems(owner || manage || (assignee && canUpdate));
         setCanCompleteList(
@@ -88,18 +88,17 @@ export default function PrepListDetailPage() {
   async function handleCompleteItem(item: PrepListItem) {
     if (!user?.token || !prepListId) return;
 
+    if (!canCheckItems) {
+      toast.error("You can only complete items on you rown prep lists.");
+      return;
+    }
+
     try {
-      let updated: PrepList;
-      if (canManage || isOwner) {
-        updated = await completeItem(
-          user.token,
-          prepListId,
-          item.prepListItemId,
-        );
-      } else {
-        toast.error("You can only complete items on your own prep lists.");
-        return;
-      }
+      const updated = await completeItem(
+        user.token,
+        prepListId,
+        item.prepListItemId,
+      );
       setPrepList(updated);
       toast.success(`${item.itemName} marked as complete.`);
     } catch {
@@ -139,7 +138,7 @@ export default function PrepListDetailPage() {
       let updated: PrepList;
       if (canManage) {
         updated = await forceCompletePrepList(user.token, prepListId);
-      } else if (isOwner) {
+      } else if (canCompleteList) {
         updated = await completePrepList(user.token, prepListId);
       } else {
         toast.error("You can only complete your own prep lists.");

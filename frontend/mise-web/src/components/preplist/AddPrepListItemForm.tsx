@@ -81,7 +81,9 @@ export function AddPrepListItemForm({
           setAnchorIngredient(anchor);
           setAnchorIngredientId(anchor?.ingredientId ?? "");
         })
-        .catch(() => setAnchorIngredient(null))
+        .catch(() => {
+          setAnchorIngredient(null);
+        })
         .finally(() => setLoadingAnchor(false));
     }
   }
@@ -199,17 +201,17 @@ export function AddPrepListItemForm({
               </p>
               <div className="flex items-center gap-3">
                 <label className="text-sm text-muted-foreground flex-shrink-0">
-                  Anchor quantity:
+                  Anchor quantity
                   {loadingAnchor
                     ? "..."
                     : anchorIngredient
-                      ? `(${anchorIngredient.ingredientName}${
+                      ? ` (${anchorIngredient.ingredientName}${
                           anchorIngredient.unitName
                             ? `, ${anchorIngredient.unitName}`
                             : ""
                         })`
-                      : ""}{" "}
-                  : {""}
+                      : ""}
+                  :{" "}
                 </label>
                 <input
                   type="number"
