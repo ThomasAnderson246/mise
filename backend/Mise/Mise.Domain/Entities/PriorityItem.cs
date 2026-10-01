@@ -37,7 +37,7 @@ namespace Mise.Domain.Entities
         public Recipe? Recipe { get; set; }
         public Ingredient? AnchorIngredient { get; set; }
         public User FlaggedByUser { get; set; } = null!;
-        public User CreateDByUser { get; set; } = null!;
+        public User CreatedByUser { get; set; } = null!;
         public PrepList? SourcePrepList { get; set; }
         public PrepListItem? SourcePrepListItem { get; set; }
     }

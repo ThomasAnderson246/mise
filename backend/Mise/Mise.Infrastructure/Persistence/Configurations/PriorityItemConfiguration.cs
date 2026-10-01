@@ -9,7 +9,7 @@ using Mise.Domain.Entities;
 
 namespace Mise.Infrastructure.Persistence.Configurations
 {
-    public class PriorityItemConfiguration
+    public class PriorityItemConfiguration : IEntityTypeConfiguration<PriorityItem>
     {
 
         public void Configure(EntityTypeBuilder<PriorityItem> builder)
@@ -35,7 +35,9 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("recipe_id");
 
             builder.Property(p => p.ItemName)
-                .HasColumnName("item_name");
+                .HasColumnName("item_name")
+                .HasMaxLength(255)
+                .IsRequired();
 
             builder.Property(p => p.ScalingFactor)
                 .HasColumnName("scaling_factor")
@@ -52,6 +54,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasColumnName("notes");
 
             builder.Property(p => p.Origin)
+                .HasColumnName("origin")
                 .HasMaxLength(20)
                 .IsRequired();
 
@@ -103,7 +106,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
                 .HasForeignKey(p => p.FlaggedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(p => p.CreateDByUser)
+            builder.HasOne(p => p.CreatedByUser)
                 .WithMany()
                 .HasForeignKey(p => p.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);

@@ -28,7 +28,7 @@ namespace Mise.Domain.Entities
         public string? IncompleteReasonCode {  get; set; }
         public string? IncompleteNote {  get; set; }
         public Guid? IncompleteFlaggedBy { get; set; }
-        public DateTime? InCompleteFlaggedAt {  get; set; }
+        public DateTime? IncompleteFlaggedAt {  get; set; }
 
 
         // navigation

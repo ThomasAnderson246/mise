@@ -89,7 +89,7 @@ namespace Mise.Infrastructure.Persistence.Configurations
             builder.Property(pli => pli.IncompleteFlaggedBy)
                 .HasColumnName("incomplete_flagged_by");
 
-            builder.Property(pli => pli.InCompleteFlaggedAt)
+            builder.Property(pli => pli.IncompleteFlaggedAt)
                 .HasColumnName("incompleted_flagged_at");
 
 

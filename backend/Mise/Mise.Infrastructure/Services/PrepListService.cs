@@ -385,6 +385,117 @@ namespace Mise.Infrastructure.Services
             }
         }
 
+        public async Task<PrepList> FlagItemIncompleteAsync(
+            Guid prepListId,
+            Guid itemId,
+            FlagItemIncompleteRequest request,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            if (string.IsNullOrWhiteSpace(request.ReasonCode))
+                throw new InvalidOperationException("A reason is required to flag an item as incomplete.");
+
+            var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                ?? throw new KeyNotFoundException($"Prep list {prepListId} does not exits.");
+
+            if (prepList.IsComplete)
+                throw new InvalidOperationException("Cannot flag an item on a prep list that's already complete.");
+
+            var item = prepList.Items.FirstOrDefault(i => i.PrepListItemId == itemId)
+                ?? throw new KeyNotFoundException($"Prep list item {itemId} not found.");
+
+            if (item.IsComplete)
+                throw new InvalidOperationException("Cannot flag a completed item as incomplete.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                item.IsIncomplete = true;
+                item.IncompleteReasonCode = request.ReasonCode;
+                item.IncompleteNote = request.ReasonNote;
+                item.IncompleteFlaggedBy = performedBy;
+                item.IncompleteFlaggedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "flag_item_incomplete",
+                    "prepList",
+                    prepListId,
+                    null,
+                    JsonSerializer.Serialize(new
+                    {
+                        ItemId = itemId,
+                        request.ReasonCode,
+                        request.ReasonNote
+                    }));
+
+                await transaction.CommitAsync();
+
+                return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                    ?? prepList;
+            } 
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<PrepList> UnflagItemAsync(
+            Guid prepListId,
+            Guid itemId,
+            Guid tenantId,
+            Guid performedBy)
+        {
+            var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
+
+            if (prepList.IsComplete)
+                throw new InvalidOperationException("Cannot unflag an item on a prep list that's complete.");
+
+            var item = prepList.Items.FirstOrDefault(i => i.PrepListItemId == itemId)
+                ?? throw new KeyNotFoundException($"Prep list item {itemId} not found.");
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var previousState = JsonSerializer.Serialize(new
+                {
+                    item.IncompleteReasonCode,
+                    item.IncompleteNote
+                });
+
+                item.IsIncomplete = false;
+                item.IncompleteReasonCode = null;
+                item.IncompleteNote = null;
+                item.IncompleteFlaggedBy = null;
+                item.IncompleteFlaggedAt = null;
+
+                await _context.SaveChangesAsync();
+
+                await _auditLogServices.LogAsync(
+                    tenantId,
+                    performedBy,
+                    "unflag_item_incomplete",
+                    "prepList",
+                    prepListId,
+                    previousState,
+                    JsonSerializer.Serialize(new { ItemId = itemId }));
+
+                await transaction.CommitAsync();
+
+                return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                    ?? prepList;
+            } 
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
         public async Task<PrepList> CompletePrepListAsync(
             Guid prepListId,
             Guid tenantId,
