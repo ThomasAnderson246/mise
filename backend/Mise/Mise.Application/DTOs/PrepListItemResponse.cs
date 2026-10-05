@@ -17,6 +17,7 @@ namespace Mise.Application.DTOs
         public decimal? ScalingFactor { get; set; }
         public Guid? AnchorIngredientId { get; set; }
         public string? AnchorIngredientName { get; set; }
+        public string? AnchorIngredientUnit {  get; set; }
         public decimal? AnchorQuantity { get; set; }
         public decimal? Quantity { get; set; }
         public string? Unit {  get; set; }
@@ -26,6 +27,12 @@ namespace Mise.Application.DTOs
         public Guid? CompletedBy { get; set; }
         public string? CompletedByName { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public bool IsIncomplete { get; set; }
+        public string? IncompleteReasonCode {  get; set; }
+        public string? IncompleteNote { get; set; }
+        public Guid? IncompleteFlaggedBy { get; set; }
+        public string? IncompleteFlaggedByName { get; set; }
+        public DateTime? IncompleteFlaggedAt { get; set; }
 
     }
 }

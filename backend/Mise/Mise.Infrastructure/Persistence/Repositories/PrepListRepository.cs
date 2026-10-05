@@ -62,6 +62,9 @@ namespace Mise.Infrastructure.Persistence.Repositories
                     .ThenInclude(i => i.CompletedByUser)
                 .Include(pl => pl.Items)
                     .ThenInclude(i => i.AnchorIngredient)
+                        .ThenInclude(a => a!.DefaultUnitType)
+                 .Include(pl => pl.Items)
+                    .ThenInclude(i => i.IncompleteFlaggedByUser)
                 .Include(pl => pl.CreatedByUser)
                 .Include(pl => pl.AssignedToUser)
                 .FirstOrDefaultAsync();

@@ -179,6 +179,52 @@ namespace Mise.API.Controllers
             }
         }
 
+        [HttpPut("{id}/items/{itemId}/incomplete")]
+        [RequiresPermission("preplist", "update")]
+        public async Task<IActionResult> FlagItemIncomplete(
+            Guid id, Guid itemId, [FromBody] FlagItemIncompleteRequest request)
+        {
+            try
+            {
+                var prepList = await _prepListService.FlagItemIncompleteAsync(
+                    id, itemId, request, _currentUser.TenantId, _currentUser.UserId);
+
+                return Ok(ApiResponse<PrepListResponse>.Ok(
+                    MapToResponse(prepList), "Item flagged as incomplete."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+        }
+
+        [HttpDelete("{id}/items/{itemId}/incomplete")]
+        [RequiresPermission("preplist", "update")]
+        public async Task<IActionResult> UnflagItemIncomplete(Guid id, Guid itemId)
+        {
+            try
+            {
+                var prepList = await _prepListService.UnflagItemAsync(
+                    id, itemId, _currentUser.TenantId, _currentUser.UserId);
+
+                return Ok(ApiResponse<PrepListResponse>.Ok(
+                    MapToResponse(prepList), "Item unflagged."));
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ApiResponse<PrepListResponse>.Fail(ex.Message));
+            }
+                
+        }
+
         [HttpPost("{id}/complete")]
         [RequiresPermission("preplist", "update")]
         public async Task<IActionResult> CompletePrepList(Guid id)
@@ -302,6 +348,7 @@ namespace Mise.API.Controllers
                 ScalingFactor = i.ScalingFactor,
                 AnchorIngredientId = i.AnchorIngredientId,
                 AnchorIngredientName = i.AnchorIngredient?.Name,
+                AnchorIngredientUnit = i.AnchorIngredient?.DefaultUnitType?.Name,
                 AnchorQuantity = i.AnchorQuantity,
                 Quantity = i.Quantity,
                 Unit = i.Unit,
@@ -312,7 +359,15 @@ namespace Mise.API.Controllers
                 CompletedByName = i.CompletedByUser != null
                     ? $"{i.CompletedByUser.FirstName} {i.CompletedByUser.LastName}"
                     : null,
-                CompletedAt = i.CompletedAt
+                CompletedAt = i.CompletedAt,
+                IsIncomplete = i.IsIncomplete,
+                IncompleteReasonCode = i.IncompleteReasonCode,
+                IncompleteNote = i.IncompleteNote,
+                IncompleteFlaggedBy = i.IncompleteFlaggedBy,
+                IncompleteFlaggedByName = i.IncompleteFlaggedByUser != null
+                    ? $"{i.IncompleteFlaggedByUser.FirstName} {i.IncompleteFlaggedByUser.LastName}"
+                    : null,
+                IncompleteFlaggedAt = i.IncompleteFlaggedAt
             }).OrderBy(i => i.DisplayOrder).ToList()
         };
     }

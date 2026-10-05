@@ -25,5 +25,7 @@ namespace Mise.Application.Interfaces
         Task<PrepList> ForceCompletePrepListAsync(Guid prepListId, Guid tenantId, Guid performedBy);
 
         Task<PrepList> AssignPrepListAsync(Guid prepListId, Guid assignedTo, Guid tenantId, Guid assignedBy);
+        Task<PrepList> FlagItemIncompleteAsync(Guid prepListId, Guid itemId, FlagItemIncompleteRequest request, Guid tenantId, Guid performedBy);
+        Task<PrepList> UnflagItemAsync(Guid prepListId, Guid itemId, Guid tenantId, Guid performedBy);
     }
 }
