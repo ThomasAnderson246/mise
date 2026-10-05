@@ -226,7 +226,7 @@ namespace Mise.API.Controllers
         }
 
         [HttpPost("{id}/complete")]
-        [RequiresPermission("preplist", "update")]
+        [RequiresPermission("preplist", "complete")]
         public async Task<IActionResult> CompletePrepList(Guid id)
         {
             try

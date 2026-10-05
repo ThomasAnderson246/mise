@@ -10,6 +10,7 @@ using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
 using Microsoft.Extensions.Logging;
+using Mise.Application.Constants;
 
 namespace Mise.Infrastructure.Services
 {
@@ -358,6 +359,12 @@ namespace Mise.Infrastructure.Services
                 item.IsComplete = true;
                 item.CompletedBy = completedBy;
                 item.CompletedAt = DateTime.UtcNow;
+                // finishing an item that was flagged supersedes that flag
+                item.IsIncomplete = false;
+                item.IncompleteReasonCode = null;
+                item.IncompleteNote = null;
+                item.IncompleteFlaggedBy = null;
+                item.IncompleteFlaggedAt = null;
 
                 //_context.PrepListItems.Update(item);
                 await _context.SaveChangesAsync();
@@ -392,8 +399,7 @@ namespace Mise.Infrastructure.Services
             Guid tenantId,
             Guid performedBy)
         {
-            if (string.IsNullOrWhiteSpace(request.ReasonCode))
-                throw new InvalidOperationException("A reason is required to flag an item as incomplete.");
+            IncompleteReasons.Validate(request.ReasonCode, request.ReasonNote);
 
             var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
                 ?? throw new KeyNotFoundException($"Prep list {prepListId} does not exits.");
@@ -498,47 +504,118 @@ namespace Mise.Infrastructure.Services
         }
         public async Task<PrepList> CompletePrepListAsync(
             Guid prepListId,
+            CompletePrepListRequest? request,
             Guid tenantId,
             Guid completedBy)
         {
             var prepList = await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
                 ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
 
-            
-
             if (prepList.IsComplete)
-                throw new InvalidOperationException("Prep list is already complete.");
+                throw new InvalidOperationException("Prep list is already copmlete.");
 
-            var hasIncompleteItems = prepList.Items.Any(i => !i.IsComplete);
-            if (hasIncompleteItems)
-                throw new InvalidOperationException("All items must be completed before the prep list can be completed.");
+            var reasons = new Dictionary<Guid, UntouchedItemReason>();
+            foreach (var r in request?.UntouchedItemReasons ?? new List<UntouchedItemReason>())
+                reasons[r.PrepListItemId] = r;
+
+            // every item has to be done, already flagged with a reason, or given a reason
+            var untouched = prepList.Items.Where(i => !i.IsComplete && !i.IsIncomplete).ToList();
+            foreach (var item in untouched)
+            {
+                if (!reasons.TryGetValue(item.PrepListItemId, out var reason))
+                    throw new InvalidOperationException($"\"{item.ItemName}\" isn't done. Check it off or give a reason.");
+
+                IncompleteReasons.Validate(reason.ReasonCode, reason.ReasonNote);
+            }
+
+            var incompleteItems = new List<PrepListItem>();
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                prepList.IsComplete = true;
-                prepList.CompletedAt = DateTime.UtcNow;
+                var now = DateTime.UtcNow;
 
-                await _prepListRepository.UpdateAsync(prepList);
+                foreach (var item in untouched)
+                {
+                    var reason = reasons[item.PrepListItemId];
+                    item.IsIncomplete = true;
+                    item.IncompleteReasonCode = reason.ReasonCode;
+                    item.IncompleteNote = reason.ReasonNote?.Trim();
+                    item.IncompleteFlaggedBy = completedBy;
+                    item.IncompleteFlaggedAt = now;
 
-                await _auditLogServices.LogAsync(
-                    tenantId,
-                    completedBy,
-                    "complete",
-                    "prep_list",
-                    prepListId,
-                    null,
-                    JsonSerializer.Serialize(new { CompletedAt = prepList.CompletedAt }));
+                    await _auditLogServices.LogAsync(
+                        tenantId, completedBy, "flag_item_incomplete", "prepList", prepListId, null,
+                        JsonSerializer.Serialize(new
+                        {
+                            ItemId = item.PrepListItemId,
+                            reason.ReasonCode,
+                            reason.ReasonNote,
+                            AtCompletion = true
+                        }));
 
-                await transaction.CommitAsync();
+                    // everything not done at this point, flagged earlier or just now.
+                    incompleteItems = prepList.Items.Where(i => !i.IsComplete && i.IsIncomplete).ToList();
 
-                return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
-                    ?? prepList;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
+                    // custom items stay on this closed list with their reason an appear in manager notification
+                    // they do not get a priority row
+                    // this is flagged for fixing post-alpha
+                    var priorityItems = incompleteItems
+                        .Where(i => i.SourceType != "custom" && i.RecipeId != null)
+                        .Select(i => new PriorityItem
+                        {
+                            PriorityItemId = Guid.NewGuid(),
+                            TenantId = tenantId,
+                            SourceType = i.SourceType,
+                            RecipeId = i.RecipeId,
+                            ItemName = i.ItemName,
+                            ScalingFactor = i.ScalingFactor,
+                            AnchorIngredientId = i.AnchorIngredientId,
+                            AnchorQuantity = i.AnchorQuantity,
+                            Notes = i.Notes,
+                            Origin = "flagged",
+                            ReasonCode = i.IncompleteReasonCode!,
+                            ReasonNote = i.IncompleteNote,
+                            FlaggedBy = i.IncompleteFlaggedBy ?? completedBy,
+                            SourcePrepListId = prepListId,
+                            SourcePrepListItemId = i.PrepListItemId,
+                            CreatedBy = completedBy,
+                            CreatedAt = now
+                        }).ToList();
+
+                    await _context.PriorityItems.AddRangeAsync(priorityItems);
+
+                    prepList.IsComplete = true;
+                    prepList.CompletedAt = now;
+
+                    await _prepListRepository.UpdateAsync(prepList);
+                    await _context.SaveChangesAsync();
+
+                    foreach (var p in priorityItems)
+                    {
+                        await _auditLogServices.LogAsync(
+                            tenantId, completedBy, "priority_item_created", "priority_item", p.PriorityItemId, null,
+                            JsonSerializer.Serialize(new
+                            {
+                                p.ItemName,
+                                p.ReasonCode,
+                                p.ReasonNote,
+                                p.SourcePrepListId
+                            }));
+                    }
+
+                        await _auditLogServices.LogAsync(
+                            tenantId, completedBy, "complete", "prep_list", prepListId, null,
+                            JsonSerializer.Serialize(new
+                            {
+                                CompletedAt = prepList.CompletedAt,
+                                IncompleteCount = incompleteItems.Count
+                            }));
+
+                        await transaction.CommitAsync();
+                    
+                }
+
             }
         }
 
