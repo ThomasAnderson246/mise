@@ -227,12 +227,12 @@ namespace Mise.API.Controllers
 
         [HttpPost("{id}/complete")]
         [RequiresPermission("preplist", "complete")]
-        public async Task<IActionResult> CompletePrepList(Guid id)
+        public async Task<IActionResult> CompletePrepList(Guid id, [FromBody] CompletePrepListRequest request)
         {
             try
             {
                 var prepList = await _prepListService.CompletePrepListAsync(
-                    id, _currentUser.TenantId, _currentUser.UserId);
+                    id, request, _currentUser.TenantId, _currentUser.UserId);
 
                 return Ok(ApiResponse<PrepListResponse>.Ok(
                     MapToResponse(prepList), "Prep list completed."));

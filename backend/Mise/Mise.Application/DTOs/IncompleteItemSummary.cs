@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Mise.Application.DTOs
 {
-    internal class IncompleteItemSummary
-    {
-    }
+    public record IncompleteItemSummary(string ItemName, string ReasonLabel, string? ReasonNote);
+    
 }

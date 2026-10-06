@@ -512,15 +512,15 @@ namespace Mise.Infrastructure.Services
                 ?? throw new KeyNotFoundException($"Prep list {prepListId} not found.");
 
             if (prepList.IsComplete)
-                throw new InvalidOperationException("Prep list is already copmlete.");
+                throw new InvalidOperationException("Prep list is already complete.");
 
             var reasons = new Dictionary<Guid, UntouchedItemReason>();
             foreach (var r in request?.UntouchedItemReasons ?? new List<UntouchedItemReason>())
                 reasons[r.PrepListItemId] = r;
 
-            // every item has to be done, already flagged with a reason, or given a reason
+            // every item has to be done, already flagged, or given a reason
             var untouched = prepList.Items.Where(i => !i.IsComplete && !i.IsIncomplete).ToList();
-            foreach (var item in untouched)
+            foreach(var item in untouched)
             {
                 if (!reasons.TryGetValue(item.PrepListItemId, out var reason))
                     throw new InvalidOperationException($"\"{item.ItemName}\" isn't done. Check it off or give a reason.");
@@ -530,7 +530,7 @@ namespace Mise.Infrastructure.Services
 
             var incompleteItems = new List<PrepListItem>();
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
+            using var transaciton = await _context.Database.BeginTransactionAsync();
             try
             {
                 var now = DateTime.UtcNow;
@@ -553,70 +553,106 @@ namespace Mise.Infrastructure.Services
                             reason.ReasonNote,
                             AtCompletion = true
                         }));
-
-                    // everything not done at this point, flagged earlier or just now.
-                    incompleteItems = prepList.Items.Where(i => !i.IsComplete && i.IsIncomplete).ToList();
-
-                    // custom items stay on this closed list with their reason an appear in manager notification
-                    // they do not get a priority row
-                    // this is flagged for fixing post-alpha
-                    var priorityItems = incompleteItems
-                        .Where(i => i.SourceType != "custom" && i.RecipeId != null)
-                        .Select(i => new PriorityItem
-                        {
-                            PriorityItemId = Guid.NewGuid(),
-                            TenantId = tenantId,
-                            SourceType = i.SourceType,
-                            RecipeId = i.RecipeId,
-                            ItemName = i.ItemName,
-                            ScalingFactor = i.ScalingFactor,
-                            AnchorIngredientId = i.AnchorIngredientId,
-                            AnchorQuantity = i.AnchorQuantity,
-                            Notes = i.Notes,
-                            Origin = "flagged",
-                            ReasonCode = i.IncompleteReasonCode!,
-                            ReasonNote = i.IncompleteNote,
-                            FlaggedBy = i.IncompleteFlaggedBy ?? completedBy,
-                            SourcePrepListId = prepListId,
-                            SourcePrepListItemId = i.PrepListItemId,
-                            CreatedBy = completedBy,
-                            CreatedAt = now
-                        }).ToList();
-
-                    await _context.PriorityItems.AddRangeAsync(priorityItems);
-
-                    prepList.IsComplete = true;
-                    prepList.CompletedAt = now;
-
-                    await _prepListRepository.UpdateAsync(prepList);
-                    await _context.SaveChangesAsync();
-
-                    foreach (var p in priorityItems)
-                    {
-                        await _auditLogServices.LogAsync(
-                            tenantId, completedBy, "priority_item_created", "priority_item", p.PriorityItemId, null,
-                            JsonSerializer.Serialize(new
-                            {
-                                p.ItemName,
-                                p.ReasonCode,
-                                p.ReasonNote,
-                                p.SourcePrepListId
-                            }));
-                    }
-
-                        await _auditLogServices.LogAsync(
-                            tenantId, completedBy, "complete", "prep_list", prepListId, null,
-                            JsonSerializer.Serialize(new
-                            {
-                                CompletedAt = prepList.CompletedAt,
-                                IncompleteCount = incompleteItems.Count
-                            }));
-
-                        await transaction.CommitAsync();
-                    
                 }
 
+                // everything not done at this point, flagged earlier, or just now
+                incompleteItems = prepList.Items.Where(i => !i.IsComplete && i.IsIncomplete).ToList();
+
+                // custom items stay on this closed list with their reason and appear in the notification
+                var priorityItems = incompleteItems
+                    .Where(i => i.SourceType != "custom" && i.RecipeId != null)
+                    .Select(i => new PriorityItem
+                    {
+                        PriorityItemId = Guid.NewGuid(),
+                        TenantId = tenantId,
+                        SourceType = i.SourceType,
+                        RecipeId = i.RecipeId,
+                        ItemName = i.ItemName,
+                        ScalingFactor = i.ScalingFactor,
+                        AnchorIngredientId = i.AnchorIngredientId,
+                        AnchorQuantity = i.AnchorQuantity,
+                        Notes = i.Notes,
+                        Origin = "flagged",
+                        ReasonCode = i.IncompleteReasonCode!,
+                        ReasonNote = i.IncompleteNote,
+                        FlaggedBy = i.IncompleteFlaggedBy ?? completedBy,
+                        SourcePrepListId = prepListId,
+                        SourcePrepListItemId = i.PrepListItemId,
+                        CreatedBy = completedBy,
+                        CreatedAt = now
+                    }).ToList();
+
+                await _context.PriorityItems.AddRangeAsync(priorityItems);
+
+                prepList.IsComplete = true;
+                prepList.CompletedAt = now;
+
+                await _prepListRepository.UpdateAsync(prepList);
+                await _context.SaveChangesAsync();
+
+                foreach (var p in priorityItems)
+                {
+                    await _auditLogServices.LogAsync(
+                        tenantId, completedBy, "priority_item_created", "priority_item", p.PriorityItemId, null,
+                        JsonSerializer.Serialize(new
+                        {
+                            p.ItemName,
+                            p.ReasonCode,
+                            p.ReasonNote,
+                            p.SourcePrepListId
+                        }));
+                }
+
+                await _auditLogServices.LogAsync(
+                    tenantId, completedBy, "complete", "prep_list", prepListId, null,
+                    JsonSerializer.Serialize(new
+                    {
+                        CompletedAt = prepList.CompletedAt,
+                        IncompleteCount = incompleteItems.Count
+                    }));
+
+                await transaciton.CommitAsync();
             }
+            catch
+            {
+                await transaciton.RollbackAsync();
+                throw;
+            }
+
+            //the list is closed at this point. 
+            // a notification failure shouldn't throw an error
+            if (incompleteItems.Count > 0)
+            {
+                try
+                {
+                    var completer = await _context.Users
+                        .Where(u => u.UserId == completedBy)
+                        .Select(u => new { u.FirstName, u.LastName })
+                        .FirstOrDefaultAsync();
+
+                    var completerName = completer != null
+                        ? $"{completer.FirstName} {completer.LastName}"
+                        : "Someone";
+
+                    await _notificationService.NotifyPrepListIncompleteAsync(
+                        prepList.Name,
+                        completerName,
+                        incompleteItems.Select(i => new IncompleteItemSummary(
+                            i.ItemName,
+                            IncompleteReasons.Label(i.IncompleteReasonCode!),
+                            i.IncompleteNote)).ToList(),
+                        tenantId,
+                        completedBy);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "Failed to send incomplete-items notification for prep list {PrepLIstId} ", prepListId);
+                }
+            }
+
+            return await _prepListRepository.GetWithItemsAsync(prepListId, tenantId)
+                ?? prepList;
         }
 
         public async Task<IEnumerable<PrepListSummaryResponse>> GetSummaryAsync(Guid tenantId)

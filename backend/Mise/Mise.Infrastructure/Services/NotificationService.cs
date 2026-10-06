@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Mise.Application.DTOs;
 using Mise.Application.Interfaces;
 using Mise.Domain.Entities;
 using Mise.Infrastructure.Persistence.Context;
@@ -154,6 +155,44 @@ namespace Mise.Infrastructure.Services
 
             await _context.Notifications.AddAsync(notification);
             await QueueNotificationAsync(notification);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task NotifyPrepListIncompleteAsync(
+            string prepListName,
+            string completedByName,
+            IReadOnlyList<IncompleteItemSummary> items,
+            Guid tenantId,
+            Guid completedBy)
+        {
+            var eligibleUsers = await GetUsersWithPermissionAsync(tenantId, "preplist", "manage");
+            eligibleUsers = eligibleUsers.Where(u => u.UserId != completedBy).ToList();
+            if (eligibleUsers.Count == 0) return;
+
+            var lines = items.Select(i => string.IsNullOrWhiteSpace(i.ReasonNote)
+                ? $"{i.ItemName} - {i.ReasonLabel}"
+                : $"{i.ItemName} - {i.ReasonLabel}: {i.ReasonNote}");
+
+            var message = $"{completedByName} closed \"{prepListName}\" with {items.Count} incomplete item{(items.Count == 1 ? "" : "s")}:\n." + 
+                string.Join("\n", lines);
+
+            var notifications = eligibleUsers.Select(u => new Notification
+            {
+                NotificationId = Guid.NewGuid(),
+                TenantId = tenantId,
+                RecipientId = u.UserId,
+                Title = "Prep list closed with incomplete items",
+                Message = message,
+                Type = "preplist_incomplete",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+            }).ToList();
+
+            await _context.Notifications.AddRangeAsync(notifications);
+
+            foreach (var notification in notifications)
+                await QueueNotificationAsync(notification);
+
             await _context.SaveChangesAsync();
         }
 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BASE_URL } from "./config";
+import { BASE_URL, authHeaders } from "./config";
 
 export interface PrepListSummary{
     prepListId: string
@@ -23,6 +23,7 @@ export interface PrepListItem {
     scalingFactor: string | null
     anchorIngredientId: string | null
     anchorIngredientName: string | null
+    anchorIngredientUnit: string | null
     anchorQuantity: string | null
     quantity: number | null
     unit: string | null
@@ -32,6 +33,12 @@ export interface PrepListItem {
     completedBy: string | null
     completedByName: string | null
     completedAt: string | null
+    isIncomplete: boolean
+    incompleteReasonCode: string | null
+    incompleteNote: string | null
+    incompleteFlaggedBy: string | null
+    incompleteFlaggedByName: string | null
+    incompleteFlaggedAt: string | null
 }
 
 export interface PrepList {
@@ -67,6 +74,15 @@ export interface AddPrepListItemRequest {
     displayOrder: number
 }
 
+export interface UntouchedItemReason{
+    prepListItemId: string
+    reasonCode: string
+    reasonNote: string | null
+}
+
+export interface CompletePrepListRequest {
+    untouchedItemReasons: UntouchedItemReason[]
+}
 export async function getPrepLists(token: string): Promise<PrepList[]>{
     const response = await axios.get(`${BASE_URL}/api/preplist`, {
         withCredentials: true,
@@ -118,11 +134,18 @@ export async function forceCompleteItem(token: string, prepListId: string, itemI
     return response.data.data
 }
 
-export async function completePrepList(token: string, prepListId: string):Promise<PrepList>{
-    const response = await axios.post(`${BASE_URL}/api/preplist/${prepListId}/complete`, {},{
-        withCredentials: true,
-        headers: {Authorization: `Bearer ${token}`}
-    })
+export async function completePrepList(token: string, prepListId: string, request?: CompletePrepListRequest):Promise<PrepList>{
+    const response = await axios.post(`${BASE_URL}/api/preplist/${prepListId}/complete`, request ?? { untouchedItemReasons: []}, authHeaders(token))
+    return response.data.data
+}
+
+export async function flagItemIncomplete(token: string, prepListId: string, itemId: string, reasonCode: string, reasonNote: string | null): Promise<PrepList>{
+    const response = await axios.put(`${BASE_URL}/api/preplist/${prepListId}/items/${itemId}/incomplete`, {reasonCode, reasonNote}, authHeaders(token))
+    return response.data.data
+}
+
+export async function unflagItemIncomplete(token: string, prepListId: string, itemId: string): Promise<PrepList>{
+    const response = await axios.delete(`${BASE_URL}/api/preplist/${prepListId}/items/${itemId}/incomplete`,authHeaders(token))
     return response.data.data
 }
 
