@@ -10,6 +10,8 @@ import {
   addPrepListItem,
   deletePrepListItem,
   assignPrepList,
+  flagItemIncomplete,
+  unflagItemIncomplete,
 } from "@/api/prepListApi";
 import { getUsers } from "@/api/userApi";
 import { PageHeader } from "@/components/PageHeader";
@@ -22,6 +24,21 @@ import type {
   PrepListItem,
 } from "@/api/prepListApi";
 import type { UserItem } from "@/api/userApi";
+import axios from "axios";
+import { ReasonPicker } from "@/components/preplist/ReasonPicker";
+import {
+  EMPTY_REASON,
+  getReasonLabel,
+  isReasonComplete,
+} from "@/config/incompleteReasons";
+import type { IncompleteReasonValue } from "@/config/incompleteReasons";
+
+function errorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err) && err.response?.data?.errors?.[0]) {
+    return err.response.data.errors[0];
+  }
+  return fallback;
+}
 
 export default function PrepListDetailPage() {
   const { user, hasPermission } = useAuth();
@@ -50,6 +67,14 @@ export default function PrepListDetailPage() {
 
   //complete list confirm dialog
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [flaggedItemId, setFlaggingItemId] = useState<string | null>(null);
+  const [flagReason, setFlagReason] =
+    useState<IncompleteReasonValue>(EMPTY_REASON);
+
+  // reasons for untouched items
+  const [untouchedReasons, setUntouchedReasons] = useState<
+    Record<string, IncompleteReasonValue>
+  >({});
 
   useEffect(() => {
     if (!user?.token || !prepListId) return;
@@ -89,7 +114,7 @@ export default function PrepListDetailPage() {
     if (!user?.token || !prepListId) return;
 
     if (!canCheckItems) {
-      toast.error("You can only complete items on you rown prep lists.");
+      toast.error("You can only complete items on your own prep lists.");
       return;
     }
 
@@ -103,6 +128,42 @@ export default function PrepListDetailPage() {
       toast.success(`${item.itemName} marked as complete.`);
     } catch {
       toast.error("Failed to complete item.");
+    }
+  }
+
+  async function handleFlagItem(item: PrepListItem) {
+    if (!user?.token || !prepListId) return;
+
+    try {
+      const updated = await flagItemIncomplete(
+        user.token,
+        prepListId,
+        item.prepListItemId,
+        flagReason.reasonCode,
+        flagReason.reasonNote.trim() || null,
+      );
+      setPrepList(updated);
+      setFlaggingItemId(null);
+      setFlagReason(EMPTY_REASON);
+      toast.success(`${item.itemName} marked incomplete.`);
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to mark item incomplete."));
+    }
+  }
+
+  async function handleUnflagItem(item: PrepListItem) {
+    if (!user?.token || !prepListId) return;
+
+    try {
+      const updated = await unflagItemIncomplete(
+        user.token,
+        prepListId,
+        item.prepListItemId,
+      );
+      setPrepList(updated);
+      toast.success(`${item.itemName} is back on the list.`);
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to clear the flag."));
     }
   }
 
@@ -132,26 +193,48 @@ export default function PrepListDetailPage() {
   }
 
   async function handleCompletePrepList() {
-    if (!user?.token || !prepListId) return;
+    if (!user?.token || !prepListId || !prepList) return;
+
+    if (!canCompleteList) {
+      toast.error("You can only complete your own prep lists.");
+      return;
+    }
+
+    const untouched = prepList.items.filter(
+      (i) => !i.isComplete && !i.isIncomplete,
+    );
 
     try {
-      let updated: PrepList;
-      if (canManage) {
-        updated = await forceCompletePrepList(user.token, prepListId);
-      } else if (canCompleteList) {
-        updated = await completePrepList(user.token, prepListId);
-      } else {
-        toast.error("You can only complete your own prep lists.");
-        return;
-      }
+      const updated = await completePrepList(user.token, prepListId, {
+        untouchedItemReasons: untouched.map((i) => {
+          const reason = untouchedReasons[i.prepListItemId] ?? EMPTY_REASON;
+          return {
+            prepListItemId: i.prepListItemId,
+            reasonCode: reason.reasonCode,
+            reasonNote: reason.reasonNote.trim() || null,
+          };
+        }),
+      });
       setPrepList(updated);
       setShowCompleteConfirm(false);
       toast.success("Prep list completed.");
       navigate(`/${slug}/prep-lists`);
-    } catch {
-      toast.error(
-        "failed to complete prep list. Make sure all items are checked off.",
-      );
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to complete prep list."));
+    }
+  }
+
+  async function handleForceCompletePrepList() {
+    if (!user?.token || !prepListId || !canManage) return;
+
+    try {
+      const updated = await forceCompletePrepList(user.token, prepListId);
+      setPrepList(updated);
+      setShowCompleteConfirm(false);
+      toast.success("Prep list completed.");
+      navigate(`/${slug}/prep-lists`);
+    } catch (err) {
+      toast.error(errorMessage(err, "Failed to complete prep list."));
     }
   }
 
@@ -185,6 +268,16 @@ export default function PrepListDetailPage() {
   const completedItems = prepList.items.filter((i) => i.isComplete).length;
   const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
+  const flaggedItems = prepList.items.filter(
+    (i) => i.isIncomplete && i.isComplete,
+  ).length;
+  const untouchedItems = prepList.items.filter(
+    (i) => !i.isComplete && !i.isIncomplete,
+  );
+  const allReasonsGiven = untouchedItems.every((i) =>
+    isReasonComplete(untouchedReasons[i.prepListItemId] ?? EMPTY_REASON),
+  );
+
   return (
     <div className="max-w-2xl">
       <PageHeader
@@ -202,34 +295,12 @@ export default function PrepListDetailPage() {
               </Button>
             )}
             {canCompleteList && !prepList.isComplete && (
-              <>
-                {showCompleteConfirm ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      Mark complete?
-                    </span>
-                    <Button
-                      onClick={handleCompletePrepList}
-                      className="bg-primary text-primary-foreground"
-                    >
-                      Confirm
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowCompleteConfirm(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    onClick={() => setShowCompleteConfirm(true)}
-                    className="bg-primary text-primary-foreground"
-                  >
-                    Complete list
-                  </Button>
-                )}
-              </>
+              <Button
+                onClick={() => setShowCompleteConfirm(true)}
+                className="bg-primary text-primary-foreground"
+              >
+                Complete list
+              </Button>
             )}
           </div>
         }
@@ -244,12 +315,57 @@ export default function PrepListDetailPage() {
         </div>
         <span className="text-sm text-muted-foreground whitespace-nowrap">
           {completedItems} / {totalItems} items
+          {flaggedItems > 0 && ` ${flaggedItems} incompleted`}
         </span>
       </div>
 
       {prepList.isComplete && (
         <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm font-medium">
           Prep list complete
+        </div>
+      )}
+
+      {showCompleteConfirm && !prepList.isComplete && (
+        <div className="mb-4 p-4 bg-card rounded-lg border border-border space-y-4">
+          <p className="text-sm font-medium text-foreground">
+            {untouchedItems.length === 0
+              ? "Mark this prep list complete?"
+              : `${untouchedItems.length} item${untouchedItems.length !== 1 ? "s" : ""} not done. Give a reason for each so the team knows what happened.`}
+          </p>
+          {untouchedItems.map((item) => (
+            <div key={item.prepListItemId} className="space-y-2">
+              <p className="text-sm text-foreground">{item.itemName}</p>
+              <ReasonPicker
+                value={untouchedReasons[item.prepListItemId] ?? EMPTY_REASON}
+                onChange={(v) =>
+                  setUntouchedReasons((prev) => ({
+                    ...prev,
+                    [item.prepListItemId]: v,
+                  }))
+                }
+              />
+            </div>
+          ))}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={handleCompletePrepList}
+              disabled={!allReasonsGiven}
+              className="bg-primary text-primary-foreground"
+            >
+              Complete list
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowCompleteConfirm(false)}
+            >
+              Cancel
+            </Button>
+            {canManage && untouchedItems.length > 0 && (
+              <Button variant="outline" onClick={handleForceCompletePrepList}>
+                Mark all done instead
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
